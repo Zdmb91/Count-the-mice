@@ -8,21 +8,21 @@
     <style>
         :root {
             --bg-color: #0b0c10;
-            --floor-bg: #1f1b24;
+            --floor-bg: #1a1124;
             --accent-orange: #ff7518;
-            --accent-purple: #6a0dad;
+            --accent-crimson: #990000;
             --text-light: #e0e0e0;
-            --ground-color: #1a1a1a;
-            --fence-color: #2e1d1a;
+            --ground-color: #0d0d0d;
         }
         body { 
             font-family: 'Open Sans', sans-serif; 
             margin: 0; padding: 0; 
             background-color: var(--bg-color); 
+            /* Huge centered moon and gothic night sky */
             background-image: 
-                radial-gradient(circle at 75% 15%, #f6edbd 0%, #f6edbd 40px, transparent 42px), 
-                radial-gradient(circle at 75% 15%, #ffcc0040 0%, #ffcc0000 120px, transparent 150px), 
-                radial-gradient(circle at 50% 0%, #2b1b3d 0%, #0b0c10 100%); 
+                radial-gradient(circle at 50% 25%, #fffacd 0%, #fffacd 100px, transparent 102px), 
+                radial-gradient(circle at 50% 25%, rgba(255, 250, 205, 0.2) 0%, rgba(138, 43, 226, 0.1) 250px, transparent 350px), 
+                linear-gradient(to bottom, #0f0c29, #302b63, #0b0c10); 
             color: var(--text-light); min-height: 100vh;
             overflow: hidden; position: relative;
         }
@@ -30,130 +30,138 @@
         #haunted-scene {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-            padding-bottom: 20px; z-index: 1; pointer-events: none;
+            padding-bottom: 20px; z-index: 10; pointer-events: none;
         }
         
+        /* Cobwebs in the top corners */
         body::before, body::after {
-            content: '🕸️'; position: absolute; font-size: 150px; opacity: 0.2; z-index: 0; pointer-events: none;
+            content: '🕸️'; position: absolute; font-size: 150px; opacity: 0.15; z-index: 0; pointer-events: none;
         }
         body::before { top: -40px; left: -20px; transform: rotate(-45deg); }
         body::after { top: -40px; right: -20px; transform: rotate(45deg); }
         
+        /* Dark Ground */
         #ground-layer {
             position: absolute; bottom: 0; left: 0; width: 100%; height: 100px;
             background: var(--ground-color);
-            background-image: 
-                repeating-linear-gradient(45deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 5px, rgba(0,0,0,0.2) 5px, rgba(0,0,0,0.2) 10px),
-                radial-gradient(circle at 50% 100%, #1f1f1f 0%, #1a1a1a 80%, var(--ground-color) 100%);
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.8); z-index: 2;
+            background-image: radial-gradient(circle at 50% 100%, #1a1a1a 0%, var(--ground-color) 100%);
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.9); z-index: 2;
+        }
+
+        /* Rolling Fog Layer */
+        #fog-layer {
+            position: absolute; bottom: 80px; left: 0; width: 100%; height: 80px;
+            background: linear-gradient(to top, rgba(200, 200, 200, 0.15), transparent);
+            filter: blur(8px); z-index: 6; pointer-events: none;
         }
         
-        .scenery { position: absolute; bottom: 10px; width: 100%; text-align: center; font-size: 40px; z-index: 3; pointer-events: none;}
-        .scenery span { margin: 0 10px; opacity: 0.9; }
-        
-        .spooky-entity { position: absolute; opacity: 0.6; z-index: 10; pointer-events: none; }
-        .g-entity { font-size: 50px; animation: floatGhost 8s ease-in-out infinite; }
-        .b-entity { font-size: 40px; animation: flightBat 5s linear infinite; }
+        /* Spooky Entities */
+        .spooky-entity { position: absolute; opacity: 0.7; z-index: 15; pointer-events: none; }
+        .g-entity { font-size: 55px; animation: floatGhost 7s ease-in-out infinite; }
+        .b-entity { font-size: 40px; animation: flightBat 4s linear infinite; }
         
         @keyframes floatGhost {
-            0%, 100% { transform: translate(0) rotate(0deg); opacity: 0.5; }
-            30% { transform: translate(-10px, -20px) rotate(3deg); opacity: 0.7; }
-            60% { transform: translate(15px, 10px) rotate(-3deg); opacity: 0.6; }
-            90% { transform: translate(-5px, -15px) rotate(1deg); opacity: 0.5; }
+            0%, 100% { transform: translate(0) rotate(0deg); opacity: 0.4; }
+            30% { transform: translate(-15px, -20px) rotate(5deg); opacity: 0.7; }
+            60% { transform: translate(20px, 15px) rotate(-3deg); opacity: 0.5; }
         }
         
         @keyframes flightBat {
-            0% { transform: translate(-20%, 0) rotate(0deg); }
-            50% { transform: translate(120%, -30px) rotate(5deg); }
-            100% { transform: translate(-20%, 0) rotate(0deg); }
+            0% { transform: translate(-20%, 0) rotate(0deg) scale(1); }
+            50% { transform: translate(120%, -50px) rotate(10deg) scale(0.8); }
+            100% { transform: translate(-20%, 0) rotate(0deg) scale(1); }
         }
 
-        #rickety-fence {
-            position: absolute; bottom: 85px; left: 0; width: 100%; height: 40px;
-            background-image: repeating-linear-gradient(90deg, #111 0px, #111 3px, transparent 3px, transparent 20px);
-            background-color: var(--fence-color);
-            border-top: 5px solid #111; z-index: 5;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.6);
-            transform: perspective(100px) rotateX(2deg);
-        }
-        #rickety-fence::after {
-            content: ""; position: absolute; bottom: 0; left: 0; width: 100%; height: 5px;
-            background: linear-gradient(to right, transparent, #111 50%, transparent);
+        /* Wrought Iron Cemetery Fence (Addams Family Vibe) */
+        #iron-fence {
+            position: absolute; bottom: 85px; left: 0; width: 100%; height: 60px;
+            background-image: 
+                repeating-linear-gradient(90deg, #050505 0px, #050505 5px, transparent 5px, transparent 40px),
+                linear-gradient(to bottom, transparent 15px, #050505 15px, #050505 20px, transparent 20px, transparent 40px, #050505 40px, #050505 45px, transparent 45px);
+            z-index: 5; box-shadow: 0 -5px 15px rgba(0,0,0,0.8);
         }
         
-        .dead-tree {
-            position: absolute; opacity: 0.9; z-index: 1; pointer-events: none;
-            font-size: 150px; bottom: 80px; 
+        /* Teen Wolf Element */
+        #teenwolf {
+            position: absolute; bottom: 85px; left: 18%; font-size: 70px; z-index: 7;
+            transform: scaleX(-1); animation: howl 6s infinite alternate;
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
         }
-        .tree1 { left: 5%; transform: scaleX(-1); }
-        .tree2 { right: 8%; }
-        .tree3 { left: 20%; font-size: 120px; bottom: 90px; opacity: 0.8;}
 
+        @keyframes howl {
+            0%, 70% { transform: scaleX(-1) rotate(0deg) translateY(0); }
+            100% { transform: scaleX(-1) rotate(-15deg) translateY(-5px); }
+        }
+
+        /* Graveyard Headstones */
         .graveyard { position: absolute; bottom: 80px; width: 100%; height: 1px; z-index: 4; text-align: center; }
-        .headstone { position: absolute; opacity: 0.9; font-size: 35px; color: #555; text-shadow: 1px 1px 2px #000; }
-        .hs1 { left: 10%; bottom: 10px; }
-        .hs2 { right: 15%; bottom: -5px; transform: rotate(-5deg); }
-        .hs3 { left: 30%; bottom: 5px; transform: rotate(3deg); }
-        .hs4 { right: 35%; bottom: 10px; }
+        .headstone { position: absolute; opacity: 0.8; font-size: 40px; filter: grayscale(50%) brightness(70%); }
+        .hs1 { left: 8%; bottom: 10px; }
+        .hs2 { right: 12%; bottom: 0px; transform: rotate(-8deg); }
+        .hs3 { left: 28%; bottom: 5px; transform: rotate(4deg); }
+        .hs4 { right: 25%; bottom: 12px; }
         
-        #willow-back {
-            position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
-            font-size: 100px; opacity: 0.5; z-index: -1; pointer-events: none;
-        }
-
+        /* Main Game Board */
         #game-board { 
             width: 100%; max-width: 900px; display: flex; flex-direction: column-reverse; 
             align-items: center; z-index: 20; position: relative; pointer-events: none;
         }
         
+        /* Tall Gothic Mansion Roof */
         #house-roof {
             width: 0; height: 0; border-left: 200px solid transparent; border-right: 200px solid transparent;
-            border-bottom: 120px solid #1a0d0a; margin-bottom: -5px; display: none; 
+            border-bottom: 180px solid #0f0714; margin-bottom: -5px; display: none; 
             position: relative;
         }
+        /* Glowing Attic Window */
+        #house-roof::before {
+            content: ''; position: absolute; top: 90px; left: -25px; width: 50px; height: 70px;
+            background: rgba(255, 215, 0, 0.6); border-radius: 25px 25px 0 0;
+            border: 5px solid #000; box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            animation: flicker 4s infinite alternate;
+        }
+        /* Weather vane bat */
         #house-roof::after { 
-            content: '🐈'; position: absolute; top: -110px; left: -15px; font-size: 30px; transform: scaleX(-1); opacity: 0.8;
+            content: '🦇'; position: absolute; top: -35px; left: -18px; font-size: 35px; opacity: 0.9;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
         
         .floor { 
-            width: 100%; border: 4px solid #3e2723; border-bottom: 10px solid #1a0d0a;
+            width: 100%; border: 4px solid #2d1b38; border-bottom: 10px solid #110917;
             margin-bottom: -4px; background: var(--floor-bg); min-height: 110px; 
-            position: relative; box-shadow: inset 0 0 40px rgba(0,0,0,1);
-            background-image: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,0,0,0.2) 40px, rgba(0,0,0,0.2) 45px);
+            position: relative; box-shadow: inset 0 0 40px rgba(0,0,0,1), 0 5px 15px rgba(0,0,0,0.8);
+            background-image: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,0,0,0.3) 40px, rgba(0,0,0,0.3) 45px);
         }
-        
-        .floor::before, .floor::after {
-            content: '🕸️'; position: absolute; font-size: 40px; opacity: 0.2; pointer-events: none;
-        }
-        .floor::before { top: 35px; left: -5px; transform: rotate(-10deg); }
-        .floor::after { top: 35px; right: -5px; transform: rotate(10deg); }
 
         .floor-title { 
             font-family: 'Creepster', cursive; background: rgba(0, 0, 0, 0.9); 
             color: var(--accent-orange); margin: 0; padding: 5px 15px; 
-            font-size: 24px; letter-spacing: 2px; text-shadow: 2px 2px 4px #000; border-bottom: 2px solid #3e2723;
+            font-size: 24px; letter-spacing: 2px; text-shadow: 2px 2px 4px #000; border-bottom: 2px solid #2d1b38;
             display: flex; justify-content: space-between;
         }
         .team-container { display: flex; flex-wrap: wrap; padding: 15px; gap: 10px; }
+        
+        /* Varsity Crimson Badges */
         .team-avatar { 
-            background: var(--accent-purple); color: #fff; padding: 8px 15px; 
+            background: var(--accent-crimson); color: #fff; padding: 8px 15px; 
             border: 2px solid #000; border-radius: 5px; font-size: 14px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,1); 
         }
     </style>
 </head>
 <body>
     
-    <div id="willow-back">🌲</div>
-    <div class="dead-tree tree1">🌲</div>
-    <div class="dead-tree tree2">🌲</div>
-    <div class="dead-tree tree3">🌲</div>
-    
-    <div class="spooky-entity g-entity g1" style="top: 25%; left: 8%;">👻</div>
-    <div class="spooky-entity g-entity g2" style="top: 45%; right: 12%;">👻</div>
-    <div class="spooky-entity g-entity g3" style="top: 15%; left: 60%;">👻</div>
-    <div class="spooky-entity b-entity b1" style="top: 10%; right: 5%; animation-delay: 0s;">🦇</div>
-    <div class="spooky-entity b-entity b2" style="top: 20%; left: 15%; animation-delay: 2s;">🦇</div>
+    <!-- Spooky Floating Entities -->
+    <div class="spooky-entity g-entity g1" style="top: 25%; left: 10%;">👻</div>
+    <div class="spooky-entity g-entity g2" style="top: 45%; right: 15%;">👻</div>
+    <div class="spooky-entity b-entity b1" style="top: 15%; right: 25%; animation-delay: 0s;">🦇</div>
+    <div class="spooky-entity b-entity b2" style="top: 30%; left: 20%; animation-delay: 1.5s;">🦇</div>
+    <div class="spooky-entity b-entity b1" style="top: 10%; right: 5%; animation-delay: 3s;">🦇</div>
 
+    <!-- Scenery Layers -->
     <div class="graveyard">
         <span class="headstone hs1">🪦</span>
         <span class="headstone hs2">🪦</span>
@@ -161,15 +169,14 @@
         <span class="headstone hs4">🪦</span>
     </div>
 
-    <div id="rickety-fence"></div>
+    <div id="teenwolf">🐺</div>
+    <div id="iron-fence"></div>
+    <div id="fog-layer"></div>
     <div id="ground-layer"></div>
-    <div class="scenery">
-        <span>🎃</span><span>🦉</span><span>🪦</span><span>🕯️</span><span>🌲</span><span>🪦</span><span>🎃</span>
-    </div>
     
+    <!-- Game Board -->
     <div id="haunted-scene">
-        <div id="game-board">
-        </div>
+        <div id="game-board"></div>
     </div>
 
     <script>
