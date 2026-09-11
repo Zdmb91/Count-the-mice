@@ -6,10 +6,10 @@
     <title>Haunted House - Admin</title>
     <style>
         body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; display: flex; justify-content: center; }
-        #admin-panel { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        #admin-panel { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 100%; max-width: 800px; }
         .admin-team { display: flex; align-items: center; margin-bottom: 10px; justify-content: space-between; background: #e9ecef; padding: 10px; border-radius: 4px;}
         .admin-team input { flex: 1; margin: 0 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        .floor-label { width: 160px; text-align: center; font-size: 13px; color: #444; font-weight: bold; }
+        .floor-label { width: 280px; text-align: left; padding-left: 10px; font-size: 13px; color: #444; font-weight: bold; }
         button { cursor: pointer; padding: 8px 12px; font-weight: bold; background: #28a745; color: white; border: none; border-radius: 3px; }
         .btn-down { background: #dc3545; }
         .btn-add { background: #17a2b8; width: 100%; margin-top: 10px; padding: 12px; }
@@ -27,13 +27,12 @@
     <script>
         const MAX_TOTAL_FLOORS = 8;
         
-        // EDIT FLOOR NAMES HERE TO MATCH VIEWER
         const floorNames = [
-        "The Crypt (Waiting Room)",
+            "The Crypt (Waiting Room)",
             "Floor 1: Count the Mice",
             "Floor 2: The Phantom's Violin",
             "Floor 3: The Hall of Mirrors",
-            "Floor 4: Blindfoldes Pumpkin Sculpting",
+            "Floor 4: Blindfolded Pumpkin Sculpting",
             "Floor 5: The Mirror Trap",
             "Floor 6: Spot the Differences",
             "Floor 7: Spot the Similarities",
