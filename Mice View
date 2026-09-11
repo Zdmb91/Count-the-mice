@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Count the Rice - Viewer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --floor-bg: #1f1b24;
+            --accent-orange: #ff7518;
+            --accent-purple: #6a0dad;
+            --text-light: #e0e0e0;
+        }
+        body { 
+            font-family: 'Open Sans', sans-serif; 
+            display: flex; justify-content: center;
+            margin: 0; padding: 20px; 
+            background-color: var(--bg-color); 
+            background-image: radial-gradient(circle at 50% 0%, #2b1b3d 0%, #0b0c10 70%);
+            color: var(--text-light); min-height: 100vh;
+        }
+        #game-board { 
+            width: 100%; max-width: 800px;
+            display: flex; flex-direction: column-reverse; align-items: center;
+        }
+        .floor { 
+            width: 100%; border: 3px solid #3e2723; border-bottom: 8px solid #271410;
+            margin-bottom: -3px; background: var(--floor-bg); min-height: 100px; 
+            position: relative; box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+        .floor-title { 
+            font-family: 'Creepster', cursive; background: rgba(0, 0, 0, 0.6); 
+            color: var(--accent-orange); margin: 0; padding: 5px 15px; 
+            font-size: 24px; letter-spacing: 2px; text-shadow: 2px 2px 4px #000; border-bottom: 2px solid #3e2723;
+        }
+        .team-container { display: flex; flex-wrap: wrap; padding: 15px; gap: 10px; }
+        .team-avatar { 
+            background: var(--accent-purple); color: #fff; padding: 8px 15px; 
+            border: 2px solid #000; border-radius: 5px; font-size: 14px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.5); 
+        }
+    </style>
+</head>
+<body>
+    <div id="game-board"></div>
+
+    <script>
+        const MAX_TOTAL_FLOORS = 8;
+        let defaultTeams = Array.from({length: 8}, (_, i) => ({ id: i+1, name: `Team ${i+1}`, floor: 0 }));
+        
+        function renderBoard() {
+            let teams = JSON.parse(localStorage.getItem('hauntedGameData')) || defaultTeams;
+            const board = document.getElementById("game-board");
+            board.innerHTML = "";
+
+            let maxFloor = Math.max(0, ...teams.map(t => t.floor));
+
+            for (let i = 0; i <= maxFloor && i <= MAX_TOTAL_FLOORS; i++) {
+                const floorDiv = document.createElement("div");
+                floorDiv.className = "floor";
+                floorDiv.style.width = `${100 - (i * 3)}%`;
+                
+                const title = document.createElement("div");
+                title.className = "floor-title";
+                title.innerText = i === 0 ? "The Crypt (Waiting Room)" : `Floor ${i}`;
+                floorDiv.appendChild(title);
+
+                const teamContainer = document.createElement("div");
+                teamContainer.className = "team-container";
+                
+                teams.filter(t => t.floor === i).forEach(t => {
+                    const avatar = document.createElement("div");
+                    avatar.className = "team-avatar";
+                    avatar.innerText = t.name;
+                    teamContainer.appendChild(avatar);
+                });
+
+                floorDiv.appendChild(teamContainer);
+                board.appendChild(floorDiv);
+            }
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'hauntedGameData') renderBoard();
+        });
+
+        renderBoard();
+    </script>
+</body>
+</html>
