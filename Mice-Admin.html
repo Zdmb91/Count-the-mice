@@ -3,83 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Count the Rice - Admin Controls</title>
+    <title>Haunted House - Viewer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; display: flex; justify-content: center; }
-        #admin-panel { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
-        .admin-team { display: flex; align-items: center; margin-bottom: 10px; justify-content: space-between; background: #e9ecef; padding: 10px; border-radius: 4px;}
-        .admin-team input { flex: 1; margin: 0 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        button { cursor: pointer; padding: 8px 12px; font-weight: bold; background: #28a745; color: white; border: none; border-radius: 3px; }
-        .btn-down { background: #dc3545; }
-        .btn-add { background: #17a2b8; width: 100%; margin-top: 10px; padding: 12px; }
-        .btn-reset { background: #ff7518; width: 100%; margin-top: 10px; padding: 12px; }
+        :root {
+            --bg-color: #0b0c10;
+            --floor-bg: #1f1b24;
+            --accent-orange: #ff7518;
+            --accent-purple: #6a0dad;
+            --text-light: #e0e0e0;
+        }
+        body { 
+            font-family: 'Open Sans', sans-serif; 
+            display: flex; justify-content: center;
+            margin: 0; padding: 20px; 
+            background-color: var(--bg-color); 
+            /* Full moon and night sky background */
+            background-image: 
+                radial-gradient(circle at 80% 20%, #f6edbd 0%, #f6edbd 40px, transparent 42px), 
+                radial-gradient(circle at 50% 0%, #2b1b3d 0%, #0b0c10 100%);
+            color: var(--text-light); min-height: 100vh;
+            overflow: hidden; position: relative;
+        }
+        
+        /* Spider webs via pseudo-elements */
+        body::before, body::after {
+            content: '🕸️'; position: absolute; font-size: 150px; opacity: 0.3; top: -40px; z-index: 0;
+        }
+        body::before { left: -20px; transform: rotate(-45deg); }
+        body::after { right: -20px; transform: rotate(45deg); }
+        
+        /* Ground scenery */
+        .scenery { position: absolute; bottom: 10px; width: 100%; text-align: center; font-size: 40px; z-index: 0; }
+        
+        /* Floating animations */
+        .spooky-entity { position: absolute; font-size: 50px; opacity: 0.7; animation: float 6s ease-in-out infinite; z-index: 1; }
+        .g1 { top: 20%; left: 10%; animation-delay: 0s; }
+        .g2 { top: 40%; right: 15%; animation-delay: 2s; }
+        .g3 { top: 70%; left: 20%; animation-delay: 4s; font-size: 40px; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        #game-board { 
+            width: 100%; max-width: 800px; display: flex; flex-direction: column-reverse; 
+            align-items: center; z-index: 10; margin-bottom: 60px;
+        }
+        
+        /* House Roof */
+        #house-roof {
+            width: 0; height: 0; border-left: 150px solid transparent; border-right: 150px solid transparent;
+            border-bottom: 100px solid #1a0d0a; margin-bottom: -5px; display: none; 
+        }
+        
+        .floor { 
+            width: 100%; border: 4px solid #3e2723; border-bottom: 10px solid #1a0d0a;
+            margin-bottom: -4px; background: var(--floor-bg); min-height: 110px; 
+            position: relative; box-shadow: inset 0 0 30px rgba(0,0,0,0.9);
+            background-image: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,0,0,0.2) 40px, rgba(0,0,0,0.2) 45px);
+        }
+        .floor-title { 
+            font-family: 'Creepster', cursive; background: rgba(0, 0, 0, 0.8); 
+            color: var(--accent-orange); margin: 0; padding: 5px 15px; 
+            font-size: 24px; letter-spacing: 2px; text-shadow: 2px 2px 4px #000; border-bottom: 2px solid #3e2723;
+            display: flex; justify-content: space-between;
+        }
+        .team-container { display: flex; flex-wrap: wrap; padding: 15px; gap: 10px; }
+        .team-avatar { 
+            background: var(--accent-purple); color: #fff; padding: 8px 15px; 
+            border: 2px solid #000; border-radius: 5px; font-size: 14px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.8); 
+        }
     </style>
 </head>
 <body>
-    <div id="admin-panel">
-        <h2>Admin Controls</h2>
-        <div id="admin-teams-list"></div>
-        <button class="btn-add" onclick="addTeam()">+ Add New Team</button>
-        <button class="btn-reset" onclick="resetGame()">Reset Game</button>
+    <div class="spooky-entity g1">👻</div>
+    <div class="spooky-entity g2">👻</div>
+    <div class="spooky-entity g3">🦇</div>
+    
+    <div id="game-board">
+        <!-- Roof injected via JS when floors exist -->
     </div>
+    
+    <div class="scenery">🎃 🌲 🪦 🎃 🪦 🌲 🎃</div>
 
     <script>
         const MAX_TOTAL_FLOORS = 8;
+        
+        // EDIT FLOOR NAMES HERE
+        const floorNames = [
+            "The Crypt (Waiting Room)",
+            "Floor 1: The Dungeon",
+            "Floor 2: The Laboratory",
+            "Floor 3: The Library",
+            "Floor 4: The Armory",
+            "Floor 5: The Conservatory",
+            "Floor 6: The Observatory",
+            "Floor 7: The Belfry",
+            "Floor 8: The Attic"
+        ];
+        
         let defaultTeams = Array.from({length: 8}, (_, i) => ({ id: i+1, name: `Team ${i+1}`, floor: 0 }));
-        let teams = JSON.parse(localStorage.getItem('hauntedGameData')) || defaultTeams;
+        
+        function renderBoard() {
+            let teams = JSON.parse(localStorage.getItem('hauntedGameData')) || defaultTeams;
+            const board = document.getElementById("game-board");
+            
+            board.innerHTML = '<div id="house-roof"></div>';
+            const roof = document.getElementById("house-roof");
+            let maxFloor = Math.max(0, ...teams.map(t => t.floor));
 
-        function saveState() {
-            localStorage.setItem('hauntedGameData', JSON.stringify(teams));
-            renderAdmin();
-        }
+            if (maxFloor >= 0) roof.style.display = 'block';
 
-        function renderAdmin() {
-            const admin = document.getElementById("admin-teams-list");
-            admin.innerHTML = "";
-            teams.forEach(t => {
-                const row = document.createElement("div");
-                row.className = "admin-team";
-                row.innerHTML = `
-                    <button class="btn-down" onclick="moveTeam(${t.id}, -1)">-</button>
-                    <input type="text" value="${t.name}" onchange="updateName(${t.id}, this.value)">
-                    <span>(Floor ${t.floor})</span>
-                    <button onclick="moveTeam(${t.id}, 1)">+</button>
-                `;
-                admin.appendChild(row);
-            });
-        }
+            for (let i = 0; i <= maxFloor && i <= MAX_TOTAL_FLOORS; i++) {
+                const floorDiv = document.createElement("div");
+                floorDiv.className = "floor";
+                floorDiv.style.width = `${100 - (i * 4)}%`;
+                
+                const title = document.createElement("div");
+                title.className = "floor-title";
+                let currentFloorName = floorNames[i] || `Floor ${i}`;
+                title.innerHTML = `<span>${currentFloorName}</span> <span>🕯️</span>`;
+                floorDiv.appendChild(title);
 
-        function moveTeam(id, direction) {
-            const team = teams.find(t => t.id === id);
-            if (team && (team.floor + direction) >= 0 && (team.floor + direction) <= MAX_TOTAL_FLOORS) {
-                team.floor += direction;
-                saveState();
+                const teamContainer = document.createElement("div");
+                teamContainer.className = "team-container";
+                
+                teams.filter(t => t.floor === i).forEach(t => {
+                    const avatar = document.createElement("div");
+                    avatar.className = "team-avatar";
+                    avatar.innerText = t.name;
+                    teamContainer.appendChild(avatar);
+                });
+
+                floorDiv.appendChild(teamContainer);
+                board.appendChild(floorDiv);
             }
         }
 
-        function updateName(id, newName) {
-            const team = teams.find(t => t.id === id);
-            if (team) {
-                team.name = newName;
-                saveState();
-            }
-        }
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'hauntedGameData') renderBoard();
+        });
 
-        function addTeam() {
-            const newId = teams.length ? Math.max(...teams.map(t => t.id)) + 1 : 1;
-            teams.push({ id: newId, name: `Team ${newId}`, floor: 0 });
-            saveState();
-        }
-
-        function resetGame() {
-            if(confirm("Reset all teams to Waiting Room?")) {
-                teams.forEach(t => t.floor = 0);
-                saveState();
-            }
-        }
-
-        // Initialize state so viewer has data immediately
-        saveState();
+        renderBoard();
     </script>
 </body>
 </html>
