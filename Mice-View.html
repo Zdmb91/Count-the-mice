@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Haunted House - Viewer</title>
+    <title>Haunted Yard - Viewer</title>
     <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -12,60 +12,124 @@
             --accent-orange: #ff7518;
             --accent-purple: #6a0dad;
             --text-light: #e0e0e0;
+            --ground-color: #1a1a1a;
+            --fence-color: #2e1d1a;
         }
         body { 
             font-family: 'Open Sans', sans-serif; 
-            display: flex; justify-content: center;
-            margin: 0; padding: 20px; 
+            margin: 0; padding: 0; 
             background-color: var(--bg-color); 
-            /* Full moon and night sky background */
             background-image: 
-                radial-gradient(circle at 80% 20%, #f6edbd 0%, #f6edbd 40px, transparent 42px), 
-                radial-gradient(circle at 50% 0%, #2b1b3d 0%, #0b0c10 100%);
+                radial-gradient(circle at 75% 15%, #f6edbd 0%, #f6edbd 40px, transparent 42px), 
+                radial-gradient(circle at 75% 15%, #ffcc0040 0%, #ffcc0000 120px, transparent 150px), 
+                radial-gradient(circle at 50% 0%, #2b1b3d 0%, #0b0c10 100%); 
             color: var(--text-light); min-height: 100vh;
             overflow: hidden; position: relative;
         }
-        
-        /* Spider webs via pseudo-elements */
-        body::before, body::after {
-            content: '🕸️'; position: absolute; font-size: 150px; opacity: 0.3; top: -40px; z-index: 0;
+
+        #haunted-scene {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+            padding-bottom: 20px; z-index: 1; pointer-events: none;
         }
-        body::before { left: -20px; transform: rotate(-45deg); }
-        body::after { right: -20px; transform: rotate(45deg); }
         
-        /* Ground scenery */
-        .scenery { position: absolute; bottom: 10px; width: 100%; text-align: center; font-size: 40px; z-index: 0; }
+        body::before, body::after {
+            content: '🕸️'; position: absolute; font-size: 150px; opacity: 0.2; z-index: 0; pointer-events: none;
+        }
+        body::before { top: -40px; left: -20px; transform: rotate(-45deg); }
+        body::after { top: -40px; right: -20px; transform: rotate(45deg); }
         
-        /* Floating animations */
-        .spooky-entity { position: absolute; font-size: 50px; opacity: 0.7; animation: float 6s ease-in-out infinite; z-index: 1; }
-        .g1 { top: 20%; left: 10%; animation-delay: 0s; }
-        .g2 { top: 40%; right: 15%; animation-delay: 2s; }
-        .g3 { top: 70%; left: 20%; animation-delay: 4s; font-size: 40px; }
+        #ground-layer {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 100px;
+            background: var(--ground-color);
+            background-image: 
+                repeating-linear-gradient(45deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 5px, rgba(0,0,0,0.2) 5px, rgba(0,0,0,0.2) 10px),
+                radial-gradient(circle at 50% 100%, #1f1f1f 0%, #1a1a1a 80%, var(--ground-color) 100%);
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.8); z-index: 2;
+        }
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(5deg); }
+        .scenery { position: absolute; bottom: 10px; width: 100%; text-align: center; font-size: 40px; z-index: 3; pointer-events: none;}
+        .scenery span { margin: 0 10px; opacity: 0.9; }
+        
+        .spooky-entity { position: absolute; opacity: 0.6; z-index: 10; pointer-events: none; }
+        .g-entity { font-size: 50px; animation: floatGhost 8s ease-in-out infinite; }
+        .b-entity { font-size: 40px; animation: flightBat 5s linear infinite; }
+        
+        @keyframes floatGhost {
+            0%, 100% { transform: translate(0) rotate(0deg); opacity: 0.5; }
+            30% { transform: translate(-10px, -20px) rotate(3deg); opacity: 0.7; }
+            60% { transform: translate(15px, 10px) rotate(-3deg); opacity: 0.6; }
+            90% { transform: translate(-5px, -15px) rotate(1deg); opacity: 0.5; }
+        }
+        
+        @keyframes flightBat {
+            0% { transform: translate(-20%, 0) rotate(0deg); }
+            50% { transform: translate(120%, -30px) rotate(5deg); }
+            100% { transform: translate(-20%, 0) rotate(0deg); }
+        }
+
+        #rickety-fence {
+            position: absolute; bottom: 85px; left: 0; width: 100%; height: 40px;
+            background-image: repeating-linear-gradient(90deg, #111 0px, #111 3px, transparent 3px, transparent 20px);
+            background-color: var(--fence-color);
+            border-top: 5px solid #111; z-index: 5;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.6);
+            transform: perspective(100px) rotateX(2deg);
+        }
+        #rickety-fence::after {
+            content: ""; position: absolute; bottom: 0; left: 0; width: 100%; height: 5px;
+            background: linear-gradient(to right, transparent, #111 50%, transparent);
+        }
+        
+        .dead-tree {
+            position: absolute; opacity: 0.9; z-index: 1; pointer-events: none;
+            font-size: 150px; bottom: 80px; 
+        }
+        .tree1 { left: 5%; transform: scaleX(-1); }
+        .tree2 { right: 8%; }
+        .tree3 { left: 20%; font-size: 120px; bottom: 90px; opacity: 0.8;}
+
+        .graveyard { position: absolute; bottom: 80px; width: 100%; height: 1px; z-index: 4; text-align: center; }
+        .headstone { position: absolute; opacity: 0.9; font-size: 35px; color: #555; text-shadow: 1px 1px 2px #000; }
+        .hs1 { left: 10%; bottom: 10px; }
+        .hs2 { right: 15%; bottom: -5px; transform: rotate(-5deg); }
+        .hs3 { left: 30%; bottom: 5px; transform: rotate(3deg); }
+        .hs4 { right: 35%; bottom: 10px; }
+        
+        #willow-back {
+            position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+            font-size: 100px; opacity: 0.5; z-index: -1; pointer-events: none;
         }
 
         #game-board { 
-            width: 100%; max-width: 800px; display: flex; flex-direction: column-reverse; 
-            align-items: center; z-index: 10; margin-bottom: 60px;
+            width: 100%; max-width: 900px; display: flex; flex-direction: column-reverse; 
+            align-items: center; z-index: 20; position: relative; pointer-events: none;
         }
         
-        /* House Roof */
         #house-roof {
-            width: 0; height: 0; border-left: 150px solid transparent; border-right: 150px solid transparent;
-            border-bottom: 100px solid #1a0d0a; margin-bottom: -5px; display: none; 
+            width: 0; height: 0; border-left: 200px solid transparent; border-right: 200px solid transparent;
+            border-bottom: 120px solid #1a0d0a; margin-bottom: -5px; display: none; 
+            position: relative;
+        }
+        #house-roof::after { 
+            content: '🐈'; position: absolute; top: -110px; left: -15px; font-size: 30px; transform: scaleX(-1); opacity: 0.8;
         }
         
         .floor { 
             width: 100%; border: 4px solid #3e2723; border-bottom: 10px solid #1a0d0a;
             margin-bottom: -4px; background: var(--floor-bg); min-height: 110px; 
-            position: relative; box-shadow: inset 0 0 30px rgba(0,0,0,0.9);
+            position: relative; box-shadow: inset 0 0 40px rgba(0,0,0,1);
             background-image: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,0,0,0.2) 40px, rgba(0,0,0,0.2) 45px);
         }
+        
+        .floor::before, .floor::after {
+            content: '🕸️'; position: absolute; font-size: 40px; opacity: 0.2; pointer-events: none;
+        }
+        .floor::before { top: 35px; left: -5px; transform: rotate(-10deg); }
+        .floor::after { top: 35px; right: -5px; transform: rotate(10deg); }
+
         .floor-title { 
-            font-family: 'Creepster', cursive; background: rgba(0, 0, 0, 0.8); 
+            font-family: 'Creepster', cursive; background: rgba(0, 0, 0, 0.9); 
             color: var(--accent-orange); margin: 0; padding: 5px 15px; 
             font-size: 24px; letter-spacing: 2px; text-shadow: 2px 2px 4px #000; border-bottom: 2px solid #3e2723;
             display: flex; justify-content: space-between;
@@ -73,31 +137,50 @@
         .team-container { display: flex; flex-wrap: wrap; padding: 15px; gap: 10px; }
         .team-avatar { 
             background: var(--accent-purple); color: #fff; padding: 8px 15px; 
-            border: 2px solid #000; border-radius: 5px; font-size: 14px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.8); 
+            border: 2px solid #000; border-radius: 5px; font-size: 14px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,1); 
         }
     </style>
 </head>
 <body>
-    <div class="spooky-entity g1">👻</div>
-    <div class="spooky-entity g2">👻</div>
-    <div class="spooky-entity g3">🦇</div>
     
-    <div id="game-board">
-        <!-- Roof injected via JS when floors exist -->
+    <div id="willow-back">🌲</div>
+    <div class="dead-tree tree1">🌲</div>
+    <div class="dead-tree tree2">🌲</div>
+    <div class="dead-tree tree3">🌲</div>
+    
+    <div class="spooky-entity g-entity g1" style="top: 25%; left: 8%;">👻</div>
+    <div class="spooky-entity g-entity g2" style="top: 45%; right: 12%;">👻</div>
+    <div class="spooky-entity g-entity g3" style="top: 15%; left: 60%;">👻</div>
+    <div class="spooky-entity b-entity b1" style="top: 10%; right: 5%; animation-delay: 0s;">🦇</div>
+    <div class="spooky-entity b-entity b2" style="top: 20%; left: 15%; animation-delay: 2s;">🦇</div>
+
+    <div class="graveyard">
+        <span class="headstone hs1">🪦</span>
+        <span class="headstone hs2">🪦</span>
+        <span class="headstone hs3">🪦</span>
+        <span class="headstone hs4">🪦</span>
+    </div>
+
+    <div id="rickety-fence"></div>
+    <div id="ground-layer"></div>
+    <div class="scenery">
+        <span>🎃</span><span>🦉</span><span>🪦</span><span>🕯️</span><span>🌲</span><span>🪦</span><span>🎃</span>
     </div>
     
-    <div class="scenery">🎃 🌲 🪦 🎃 🪦 🌲 🎃</div>
+    <div id="haunted-scene">
+        <div id="game-board">
+        </div>
+    </div>
 
     <script>
         const MAX_TOTAL_FLOORS = 8;
         
-        // EDIT FLOOR NAMES HERE
         const floorNames = [
-          "The Crypt (Waiting Room)",
+            "The Crypt (Waiting Room)",
             "Floor 1: Count the Mice",
             "Floor 2: The Phantom's Violin",
             "Floor 3: The Hall of Mirrors",
-            "Floor 4: Blindfoldes Pumpkin Sculpting",
+            "Floor 4: Blindfolded Pumpkin Sculpting",
             "Floor 5: The Mirror Trap",
             "Floor 6: Spot the Differences",
             "Floor 7: Spot the Similarities",
@@ -119,7 +202,7 @@
             for (let i = 0; i <= maxFloor && i <= MAX_TOTAL_FLOORS; i++) {
                 const floorDiv = document.createElement("div");
                 floorDiv.className = "floor";
-                floorDiv.style.width = `${100 - (i * 4)}%`;
+                floorDiv.style.width = `${100 - (i * 3)}%`;
                 
                 const title = document.createElement("div");
                 title.className = "floor-title";
