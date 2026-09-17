@@ -28,19 +28,20 @@
         const MAX_TOTAL_FLOORS = 8;
         
         const floorNames = [
-            "The Crypt (Waiting Room)",
-            "Floor 1: Count the Mice",
-            "Floor 2: The Phantom's Violin",
-            "Floor 3: The Hall of Mirrors",
-            "Floor 4: Blindfolded Pumpkin Sculpting",
-            "Floor 5: The Mirror Trap",
-            "Floor 6: Spot the Differences",
-            "Floor 7: Spot the Similarities",
-            "Floor 8: The Crypt Keeper's Truth"
+            "The Crypt",
+            "Count the Mice",
+            "The Phantom's Violin",
+            "The Hall of Mirrors",
+            "Blindfolded Pumpkin Sculpting",
+            "The Mirror Trap",
+            "Spot the Differences",
+            "Spot the Similarities",
+            "The Crypt Keeper's Truth"
         ];
 
         let defaultTeams = Array.from({length: 8}, (_, i) => ({ id: i+1, name: `Team ${i+1}`, floor: 0 }));
         let teams = JSON.parse(localStorage.getItem('hauntedGameData')) || defaultTeams;
+        let unlockedFloor = parseInt(localStorage.getItem('hauntedUnlockedFloor')) || 0;
 
         function saveState() {
             localStorage.setItem('hauntedGameData', JSON.stringify(teams));
@@ -68,6 +69,12 @@
             const team = teams.find(t => t.id === id);
             if (team && (team.floor + direction) >= 0 && (team.floor + direction) <= MAX_TOTAL_FLOORS) {
                 team.floor += direction;
+                
+                // Track highest floor reached
+                if (team.floor > unlockedFloor) {
+                    unlockedFloor = team.floor;
+                    localStorage.setItem('hauntedUnlockedFloor', unlockedFloor);
+                }
                 saveState();
             }
         }
@@ -87,8 +94,10 @@
         }
 
         function resetGame() {
-            if(confirm("Reset all teams to Waiting Room?")) {
+            if(confirm("Reset all teams to The Crypt and reset Fog of War?")) {
                 teams.forEach(t => t.floor = 0);
+                unlockedFloor = 0;
+                localStorage.setItem('hauntedUnlockedFloor', 0);
                 saveState();
             }
         }
