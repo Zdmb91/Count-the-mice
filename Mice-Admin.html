@@ -3,66 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Haunted House - Admin</title>
+    <title>Haunted House - Admin Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; display: flex; justify-content: center; margin: 0; }
-        #admin-panel { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 100%; max-width: 900px; }
+        body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 15px; margin: 0; display: flex; justify-content: center; }
         
-        .admin-section { background: #e9ecef; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
-        .section-title { font-weight: bold; font-size: 18px; border-bottom: 2px solid #ccc; padding-bottom: 8px; margin-bottom: 12px; color: #333; }
+        #admin-panel { 
+            background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); 
+            width: 100%; max-width: 1350px; 
+            display: flex; flex-direction: column; height: 93vh; box-sizing: border-box;
+        }
+
+        h2 { margin: 0 0 10px 0; font-size: 20px; color: #222; }
+
+        /* Main Dashboard Grid Layout (Side-by-Side) */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            max-height: calc(93vh - 80px);
+            padding-right: 5px;
+        }
+        
+        .admin-section { background: #e9ecef; padding: 12px; border-radius: 6px; }
+        .section-title { font-weight: bold; font-size: 15px; border-bottom: 2px solid #ccc; padding-bottom: 5px; margin-bottom: 8px; color: #333; }
         
         /* Queue Styles */
-        .queue-display { font-size: 15px; background: #fff; padding: 12px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; color: #555; }
-        .queue-arrow { color: #ff7518; margin: 0 8px; }
-        .queue-target { font-size: 12px; color: #888; font-weight: normal; }
+        .queue-display { font-size: 13px; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; color: #555; }
+        .queue-arrow { color: #ff7518; margin: 0 5px; }
+        .queue-target { font-size: 11px; color: #888; font-weight: normal; }
         
         /* Floor Controls Styles */
-        .floor-call-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .floor-call-row { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 8px 12px; border-radius: 4px; border: 1px solid #ccc; }
-        .floor-call-name { font-weight: bold; font-size: 13px; color: #444; }
+        .floor-call-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
+        .floor-call-row { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; }
+        .floor-call-name { font-weight: bold; font-size: 12px; color: #444; }
         
-        /* Pulse Animation for Ready Buttons */
         @keyframes pulse-green {
             0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
             70% { box-shadow: 0 0 0 6px rgba(40, 167, 69, 0); }
             100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
         }
 
-        .btn-call-ready { background: #28a745; font-size: 12px; padding: 6px 10px; color: #fff; border: 1px solid #1e7e34; animation: pulse-green 2s infinite; font-weight: bold; border-radius: 3px; cursor: pointer; }
-        .btn-disabled { background: #6c757d; font-size: 12px; padding: 6px 10px; cursor: not-allowed; opacity: 0.6; border: none; color: #fff; font-weight: bold; border-radius: 3px; }
+        .btn-call-ready { background: #28a745; font-size: 11px; padding: 5px 8px; color: #fff; border: 1px solid #1e7e34; animation: pulse-green 2s infinite; font-weight: bold; border-radius: 3px; cursor: pointer; }
+        .btn-disabled { background: #6c757d; font-size: 11px; padding: 5px 8px; cursor: not-allowed; opacity: 0.6; border: none; color: #fff; font-weight: bold; border-radius: 3px; }
         
         /* Team Controls Styles */
-        .admin-team { display: flex; align-items: center; margin-bottom: 8px; justify-content: space-between; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ccc;}
-        .admin-team input { flex: 1; margin: 0 10px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
-        .floor-label { width: 220px; text-align: center; font-size: 12px; color: #444; font-weight: bold; background: #f8f9fa; padding: 4px; border-radius: 4px;}
+        .admin-team { display: flex; align-items: center; margin-bottom: 6px; justify-content: space-between; background: #fff; padding: 6px; border-radius: 4px; border: 1px solid #ccc;}
+        .admin-team input { flex: 1; margin: 0 6px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
+        .floor-label { width: 150px; text-align: left; padding-left: 6px; font-size: 11px; color: #444; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         
-        button { cursor: pointer; padding: 8px 12px; font-weight: bold; color: white; border: none; border-radius: 3px; }
+        button { cursor: pointer; padding: 6px 10px; font-weight: bold; color: white; border: none; border-radius: 3px; }
         
-        /* Action Buttons */
-        .btn-win-room { background: #28a745; width: 75px; }
-        .btn-lose-room { background: #dc3545; width: 75px; }
-        .btn-tgt { background: #6c757d; width: 75px; }
-        .btn-force { background: #17a2b8; margin-left: 5px; font-size: 12px; padding: 6px 10px;}
+        .btn-win-room { background: #28a745; width: 65px; font-size: 11px; padding: 5px; }
+        .btn-lose-room { background: #dc3545; width: 65px; font-size: 11px; padding: 5px; }
+        .btn-tgt { background: #6c757d; width: 50px; font-size: 11px; padding: 5px; }
+        .btn-force { background: #17a2b8; margin-left: 4px; font-size: 11px; padding: 5px 8px;}
+        .btn-overall-win { background: #ffc107; color: #000; margin-left: 4px; border: 1px solid #d39e00; font-size: 12px; padding: 5px 6px;}
         
-        .btn-overall-win { background: #ffc107; color: #000; margin-left: 5px; border: 1px solid #d39e00; font-size: 14px; padding: 6px 8px;}
-        .btn-add { background: #17a2b8; width: 100%; margin-top: 10px; padding: 12px; }
-        .btn-reset { background: #ff7518; width: 100%; margin-top: 10px; padding: 12px; }
+        .global-actions { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-add { background: #17a2b8; flex: 1; padding: 8px; font-size: 13px; }
+        .btn-reset { background: #ff7518; flex: 1; padding: 8px; font-size: 13px; }
     </style>
 </head>
 <body>
     <div id="admin-panel">
-        <h2 style="margin-top:0;">Admin Controls</h2>
-        <div id="admin-content-area"></div>
-        <button class="btn-add" onclick="addTeam()">+ Add New Team</button>
-        <button class="btn-reset" onclick="resetGame()">Reset Game</button>
+        <h2>Admin Controls Dashboard</h2>
+        
+        <div class="dashboard-grid">
+            <!-- Left Column: Queue & Auto-Call -->
+            <div class="column">
+                <div class="admin-section" style="background:#fff3cd; border: 1px solid #ffeeba;">
+                    <div class="section-title">The Crypt Queue</div>
+                    <div class="queue-display" id="queue-box"></div>
+                </div>
+
+                <div class="admin-section">
+                    <div class="section-title">Auto-Call to Rooms</div>
+                    <div class="floor-call-grid" id="floor-call-box"></div>
+                </div>
+            </div>
+
+            <!-- Right Column: Team Management -->
+            <div class="column">
+                <div class="admin-section">
+                    <div class="section-title">Team Management & Outcomes</div>
+                    <div id="team-mgmt-box"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="global-actions">
+            <button class="btn-add" onclick="addTeam()">+ Add New Team</button>
+            <button class="btn-reset" onclick="resetGame()">Reset Game</button>
+        </div>
     </div>
 
     <script>
         const MAX_TOTAL_FLOORS = 8;
         
-        // --- EDIT ROOM CAPACITIES HERE ---
-        // Array maps to Floors 1 through 8. Change to 2, 3, etc. if rooms hold more teams.
-        const floorCapacities = [10, 10, 1, 1, 1, 1, 1, 2]; 
+        // Adjust individual room capacities here if needed
+        const floorCapacities = [1, 1, 1, 1, 1, 1, 1, 1]; 
         
         const floorNames = [
             "The Crypt (Waiting Room)",
@@ -81,7 +129,6 @@
         }));
         let teams = JSON.parse(localStorage.getItem('hauntedGameData')) || defaultTeams;
         
-        // Retrofit older saves with new required variables
         teams.forEach((t, i) => { 
             if (!t.queueTime) t.queueTime = Date.now() + i; 
             if (!t.targetFloor) t.targetFloor = 1; 
@@ -95,17 +142,14 @@
         }
 
         function renderAdmin() {
-            const adminArea = document.getElementById("admin-content-area");
-            adminArea.innerHTML = "";
-
-            // 1. Build The Crypt Queue
+            // 1. Build Queue Box
             const cryptTeams = teams.filter(t => t.floor === 0).sort((a, b) => a.queueTime - b.queueTime);
-            const queueHtml = cryptTeams.length > 0 
+            document.getElementById("queue-box").innerHTML = cryptTeams.length > 0 
                 ? cryptTeams.map((t, i) => `${i+1}. ${t.name} <span class="queue-target">(Tgt: Flr ${t.targetFloor})</span>`).join('<span class="queue-arrow">➔</span>') 
                 : "<em>The Crypt is empty</em>";
 
             // 2. Build Floor Callers
-            let floorCallersHtml = `<div class="floor-call-grid">`;
+            let floorCallersHtml = "";
             for(let i = 1; i <= MAX_TOTAL_FLOORS; i++) {
                 let currentCount = teams.filter(t => t.floor === i).length;
                 let cap = floorCapacities[i-1];
@@ -115,21 +159,13 @@
                 let statusColor = isFull ? "#dc3545" : "#28a745";
                 let statusText = `<span style="color:${statusColor}; font-weight:bold;">[ ${currentCount} / ${cap} ]</span>`;
                 
-                let btnState = "";
-                let btnClass = "";
-                let btnText = "";
-
+                let btnState = "", btnClass = "", btnText = "";
                 if (isFull) {
-                    btnClass = "btn-disabled";
-                    btnText = "Floor Full";
-                    btnState = "disabled";
+                    btnClass = "btn-disabled"; btnText = "Full"; btnState = "disabled";
                 } else if (nextTeam) {
-                    btnClass = "btn-call-ready";
-                    btnText = `Call: ${nextTeam.name}`;
+                    btnClass = "btn-call-ready"; btnText = `Call: ${nextTeam.name}`;
                 } else {
-                    btnClass = "btn-disabled";
-                    btnText = "No Teams Queued";
-                    btnState = "disabled";
+                    btnClass = "btn-disabled"; btnText = "Empty Q"; btnState = "disabled";
                 }
 
                 floorCallersHtml += `
@@ -139,55 +175,36 @@
                     </div>
                 `;
             }
-            floorCallersHtml += `</div>`;
+            document.getElementById("floor-call-box").innerHTML = floorCallersHtml;
 
-            // 3. Build Team Manual Controls
-            let manualTeamsHtml = `<div>`;
+            // 3. Build Team Management Box
+            let manualTeamsHtml = "";
             teams.forEach(t => {
-                let rowHtml = "";
+                let currentFloorName = floorNames[t.floor] || `Floor ${t.floor}`;
                 if (t.floor === 0) {
-                    // Team is in Crypt
-                    rowHtml = `
-                        <button class="btn-tgt" title="Decrease target floor" onclick="changeTarget(${t.id}, -1)">- Tgt</button>
-                        <input type="text" value="${t.name}" onchange="updateName(${t.id}, this.value)">
-                        <span class="floor-label">Crypt ➔ Target: Floor ${t.targetFloor}</span>
-                        <button class="btn-tgt" title="Increase target floor" onclick="changeTarget(${t.id}, 1)">+ Tgt</button>
-                        <button class="btn-force" title="Bypass queue and force team to target floor" onclick="forceGo(${t.id})">Force Go</button>
+                    manualTeamsHtml += `
+                        <div class="admin-team">
+                            <button class="btn-tgt" onclick="changeTarget(${t.id}, -1)">- Tgt</button>
+                            <input type="text" value="${t.name}" onchange="updateName(${t.id}, this.value)">
+                            <span class="floor-label">Crypt ➔ Flr ${t.targetFloor}</span>
+                            <button class="btn-tgt" onclick="changeTarget(${t.id}, 1)">+ Tgt</button>
+                            <button class="btn-force" onclick="forceGo(${t.id})">Force</button>
+                        </div>
                     `;
                 } else {
-                    // Team is Active in a Room
-                    rowHtml = `
-                        <button class="btn-lose-room" title="Lost: Drop 1 level and return to Crypt" onclick="loseRoom(${t.id})">💀 Lose</button>
-                        <input type="text" value="${t.name}" onchange="updateName(${t.id}, this.value)">
-                        <span class="floor-label">${floorNames[t.floor]}</span>
-                        <button class="btn-win-room" title="Won: Advance 1 level and return to Crypt" onclick="winRoom(${t.id})">🎉 Win</button>
-                        <button class="btn-overall-win" title="Declare Overall Winner" onclick="declareWinner(${t.id})">🏆</button>
+                    manualTeamsHtml += `
+                        <div class="admin-team">
+                            <button class="btn-lose-room" onclick="loseRoom(${t.id})">💀 Lose</button>
+                            <input type="text" value="${t.name}" onchange="updateName(${t.id}, this.value)">
+                            <span class="floor-label">${currentFloorName}</span>
+                            <button class="btn-win-room" onclick="winRoom(${t.id})">🎉 Win</button>
+                            <button class="btn-overall-win" onclick="declareWinner(${t.id})">🏆</button>
+                        </div>
                     `;
                 }
-                manualTeamsHtml += `<div class="admin-team">${rowHtml}</div>`;
             });
-            manualTeamsHtml += `</div>`;
-
-            // Inject all sections
-            adminArea.innerHTML = `
-                <div class="admin-section" style="background:#fff3cd; border: 1px solid #ffeeba;">
-                    <div class="section-title">The Crypt Queue</div>
-                    <div class="queue-display">${queueHtml}</div>
-                </div>
-
-                <div class="admin-section">
-                    <div class="section-title">Auto-Call to Rooms</div>
-                    ${floorCallersHtml}
-                </div>
-
-                <div class="admin-section">
-                    <div class="section-title">Team Management & Outcomes</div>
-                    ${manualTeamsHtml}
-                </div>
-            `;
+            document.getElementById("team-mgmt-box").innerHTML = manualTeamsHtml;
         }
-
-        // --- Core Functions ---
 
         function winRoom(id) {
             const team = teams.find(t => t.id === id);
@@ -236,7 +253,6 @@
             if (queuedTeams.length > 0) {
                 const nextTeam = queuedTeams[0];
                 nextTeam.floor = floorNum;
-                
                 if (floorNum > unlockedFloor) {
                     unlockedFloor = floorNum;
                     localStorage.setItem('hauntedUnlockedFloor', unlockedFloor);
