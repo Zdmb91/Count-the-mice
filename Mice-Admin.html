@@ -239,6 +239,15 @@
         function forceGo(id) {
             const team = teams.find(t => t.id === id);
             if (team && team.targetFloor >= 1 && team.targetFloor <= MAX_TOTAL_FLOORS) {
+                // Check Capacity Before Forcing
+                let currentCount = teams.filter(tm => tm.floor === team.targetFloor).length;
+                let cap = floorCapacities[team.targetFloor - 1];
+
+                if (currentCount >= cap) {
+                    alert(`Cannot force ${team.name} to ${floorNames[team.targetFloor]}.\n\nThis floor is currently at its maximum capacity of ${cap}.`);
+                    return; // Stop the function from proceeding
+                }
+
                 team.floor = team.targetFloor;
                 if (team.floor > unlockedFloor) {
                     unlockedFloor = team.floor;
