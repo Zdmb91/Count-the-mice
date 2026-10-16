@@ -5,23 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Haunted House - Admin</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; display: flex; justify-content: center; }
-        #admin-panel { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 100%; max-width: 800px; }
-        .admin-team { display: flex; align-items: center; margin-bottom: 10px; justify-content: space-between; background: #e9ecef; padding: 10px; border-radius: 4px;}
-        .admin-team input { flex: 1; margin: 0 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        .floor-label { width: 280px; text-align: left; padding-left: 10px; font-size: 13px; color: #444; font-weight: bold; }
+        body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; display: flex; justify-content: center; margin: 0; }
+        #admin-panel { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 100%; max-width: 900px; }
+        
+        .admin-section { background: #e9ecef; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .section-title { font-weight: bold; font-size: 18px; border-bottom: 2px solid #ccc; padding-bottom: 8px; margin-bottom: 12px; color: #333; }
+        
+        /* Queue Styles */
+        .queue-display { font-size: 15px; background: #fff; padding: 12px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; color: #555; }
+        .queue-arrow { color: #ff7518; margin: 0 8px; }
+        
+        /* Floor Controls Styles */
+        .floor-call-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .floor-call-row { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 8px 12px; border-radius: 4px; border: 1px solid #ccc; }
+        .floor-call-name { font-weight: bold; font-size: 13px; color: #444; }
+        
+        /* Team Controls Styles */
+        .admin-team { display: flex; align-items: center; margin-bottom: 8px; justify-content: space-between; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ccc;}
+        .admin-team input { flex: 1; margin: 0 10px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+        .floor-label { width: 220px; text-align: center; font-size: 12px; color: #444; font-weight: bold; background: #f8f9fa; padding: 4px; border-radius: 4px;}
+        
         button { cursor: pointer; padding: 8px 12px; font-weight: bold; color: white; border: none; border-radius: 3px; }
         .btn-up { background: #28a745; }
         .btn-down { background: #dc3545; }
-        .btn-win { background: #ffc107; color: #000; margin-left: 10px; border: 1px solid #d39e00; font-size: 16px; padding: 6px 10px;}
+        .btn-win { background: #ffc107; color: #000; margin-left: 5px; border: 1px solid #d39e00; font-size: 14px; padding: 6px 8px;}
+        .btn-crypt { background: #343a40; font-size: 12px; margin-right: 10px; }
+        .btn-call { background: #6a0dad; font-size: 12px; padding: 6px 10px; }
+        .btn-call:hover { background: #5a0b94; }
+        
         .btn-add { background: #17a2b8; width: 100%; margin-top: 10px; padding: 12px; }
         .btn-reset { background: #ff7518; width: 100%; margin-top: 10px; padding: 12px; }
     </style>
 </head>
 <body>
     <div id="admin-panel">
-        <h2>Admin Controls</h2>
-        <div id="admin-teams-list"></div>
+        <h2 style="margin-top:0;">Admin Controls</h2>
+        <div id="admin-content-area"></div>
         <button class="btn-add" onclick="addTeam()">+ Add New Team</button>
         <button class="btn-reset" onclick="resetGame()">Reset Game</button>
     </div>
@@ -29,7 +48,6 @@
     <script>
         const MAX_TOTAL_FLOORS = 8;
         
-        // Admin Names (Visible Numbers)
         const floorNames = [
             "The Crypt (Waiting Room)",
             "Floor 1: Count the Mice",
@@ -42,8 +60,13 @@
             "Floor 8: The Crypt Keeper's Truth"
         ];
 
-        let defaultTeams = Array.from({length: 8}, (_, i) => ({ id: i+1, name: `Team ${i+1}`, floor: 0 }));
+        // Ensure teams get a timestamp for queue sorting if they are new
+        let defaultTeams = Array.from({length: 8}, (_, i) => ({ id: i+1, name: `Team ${i+1}`, floor: 0, queueTime: Date.now() + i }));
         let teams = JSON.parse(localStorage.getItem('hauntedGameData')) || defaultTeams;
+        
+        // Retrofit queueTime for existing saved data
+        teams.forEach((t, i) => { if (!t.queueTime) t.queueTime = Date.now() + i; });
+        
         let unlockedFloor = parseInt(localStorage.getItem('hauntedUnlockedFloor')) || 0;
 
         function saveState() {
@@ -52,27 +75,97 @@
         }
 
         function renderAdmin() {
-            const admin = document.getElementById("admin-teams-list");
-            admin.innerHTML = "";
-            teams.forEach(t => {
-                const row = document.createElement("div");
-                row.className = "admin-team";
-                let currentFloorName = floorNames[t.floor] || `Floor ${t.floor}`;
-                row.innerHTML = `
-                    <button class="btn-down" onclick="moveTeam(${t.id}, -1)">-</button>
-                    <input type="text" value="${t.name}" onchange="updateName(${t.id}, this.value)">
-                    <span class="floor-label">${currentFloorName}</span>
-                    <button class="btn-up" onclick="moveTeam(${t.id}, 1)">+</button>
-                    <button class="btn-win" title="Declare Winner" onclick="declareWinner(${t.id})">🏆</button>
+            const adminArea = document.getElementById("admin-content-area");
+            adminArea.innerHTML = "";
+
+            // 1. Build The Crypt Queue
+            const cryptTeams = teams.filter(t => t.floor === 0).sort((a, b) => a.queueTime - b.queueTime);
+            const queueHtml = cryptTeams.length > 0 
+                ? cryptTeams.map((t, i) => `${i+1}. ${t.name}`).join('<span class="queue-arrow">➔</span>') 
+                : "<em>The Crypt is empty</em>";
+
+            // 2. Build Floor Callers
+            let floorCallersHtml = `<div class="floor-call-grid">`;
+            for(let i = 1; i <= MAX_TOTAL_FLOORS; i++) {
+                floorCallersHtml += `
+                    <div class="floor-call-row">
+                        <span class="floor-call-name">${floorNames[i]}</span>
+                        <button class="btn-call" onclick="callNextToFloor(${i})">Call Next</button>
+                    </div>
                 `;
-                admin.appendChild(row);
+            }
+            floorCallersHtml += `</div>`;
+
+            // 3. Build Team Manual Controls
+            let manualTeamsHtml = `<div>`;
+            teams.forEach(t => {
+                let currentFloorName = floorNames[t.floor] || `Floor ${t.floor}`;
+                manualTeamsHtml += `
+                    <div class="admin-team">
+                        <button class="btn-crypt" title="Send back to Crypt" onclick="sendToCrypt(${t.id})">👻 To Crypt</button>
+                        <button class="btn-down" onclick="moveTeam(${t.id}, -1)">-</button>
+                        <input type="text" value="${t.name}" onchange="updateName(${t.id}, this.value)">
+                        <span class="floor-label">${currentFloorName}</span>
+                        <button class="btn-up" onclick="moveTeam(${t.id}, 1)">+</button>
+                        <button class="btn-win" title="Declare Winner" onclick="declareWinner(${t.id})">🏆</button>
+                    </div>
+                `;
             });
+            manualTeamsHtml += `</div>`;
+
+            // Inject all sections
+            adminArea.innerHTML = `
+                <div class="admin-section" style="background:#fff3cd; border: 1px solid #ffeeba;">
+                    <div class="section-title">The Crypt Queue (Next Up)</div>
+                    <div class="queue-display">${queueHtml}</div>
+                </div>
+
+                <div class="admin-section">
+                    <div class="section-title">Auto-Call to Rooms</div>
+                    ${floorCallersHtml}
+                </div>
+
+                <div class="admin-section">
+                    <div class="section-title">Manual Team Management</div>
+                    ${manualTeamsHtml}
+                </div>
+            `;
+        }
+
+        // --- Core Functions ---
+
+        function sendToCrypt(id) {
+            const team = teams.find(t => t.id === id);
+            if (team && team.floor !== 0) {
+                team.floor = 0;
+                team.queueTime = Date.now(); // Puts them at the back of the line
+                saveState();
+            }
+        }
+
+        function callNextToFloor(floorNum) {
+            const cryptTeams = teams.filter(t => t.floor === 0).sort((a, b) => a.queueTime - b.queueTime);
+            if (cryptTeams.length > 0) {
+                const nextTeam = cryptTeams[0];
+                nextTeam.floor = floorNum;
+                
+                if (floorNum > unlockedFloor) {
+                    unlockedFloor = floorNum;
+                    localStorage.setItem('hauntedUnlockedFloor', unlockedFloor);
+                }
+                saveState();
+            } else {
+                alert("The Crypt is currently empty! No teams to call.");
+            }
         }
 
         function moveTeam(id, direction) {
             const team = teams.find(t => t.id === id);
             if (team && (team.floor + direction) >= 0 && (team.floor + direction) <= MAX_TOTAL_FLOORS) {
                 team.floor += direction;
+                
+                // If moved to crypt manually, update queue time to put at end of line
+                if (team.floor === 0) team.queueTime = Date.now();
                 
                 if (team.floor > unlockedFloor) {
                     unlockedFloor = team.floor;
@@ -86,7 +179,6 @@
             const team = teams.find(t => t.id === id);
             if (confirm(`Are you sure you want to declare ${team.name} as the WINNER?`)) {
                 localStorage.setItem('hauntedWinnerName', team.name);
-                // Trigger an immediate cross-tab event manually for Safari/Edge quirks
                 window.dispatchEvent(new StorageEvent('storage', { key: 'hauntedWinnerName' }));
             }
         }
@@ -101,13 +193,16 @@
 
         function addTeam() {
             const newId = teams.length ? Math.max(...teams.map(t => t.id)) + 1 : 1;
-            teams.push({ id: newId, name: `Team ${newId}`, floor: 0 });
+            teams.push({ id: newId, name: `Team ${newId}`, floor: 0, queueTime: Date.now() });
             saveState();
         }
 
         function resetGame() {
             if(confirm("Reset all teams to The Crypt, clear Fog of War, and reset Winner?")) {
-                teams.forEach(t => t.floor = 0);
+                teams.forEach((t, i) => {
+                    t.floor = 0;
+                    t.queueTime = Date.now() + i; // Resets order to default list order
+                });
                 unlockedFloor = 0;
                 localStorage.setItem('hauntedUnlockedFloor', 0);
                 localStorage.removeItem('hauntedWinnerName');
