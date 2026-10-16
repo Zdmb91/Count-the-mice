@@ -14,11 +14,22 @@
         /* Queue Styles */
         .queue-display { font-size: 15px; background: #fff; padding: 12px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; color: #555; }
         .queue-arrow { color: #ff7518; margin: 0 8px; }
+        .queue-target { font-size: 12px; color: #888; font-weight: normal; }
         
         /* Floor Controls Styles */
         .floor-call-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .floor-call-row { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 8px 12px; border-radius: 4px; border: 1px solid #ccc; }
         .floor-call-name { font-weight: bold; font-size: 13px; color: #444; }
+        
+        /* Pulse Animation for Ready Buttons */
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(40, 167, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+        }
+
+        .btn-call-ready { background: #28a745; font-size: 12px; padding: 6px 10px; color: #fff; border: 1px solid #1e7e34; animation: pulse-green 2s infinite; font-weight: bold; border-radius: 3px; cursor: pointer; }
+        .btn-disabled { background: #6c757d; font-size: 12px; padding: 6px 10px; cursor: not-allowed; opacity: 0.6; border: none; color: #fff; font-weight: bold; border-radius: 3px; }
         
         /* Team Controls Styles */
         .admin-team { display: flex; align-items: center; margin-bottom: 8px; justify-content: space-between; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ccc;}
@@ -26,13 +37,14 @@
         .floor-label { width: 220px; text-align: center; font-size: 12px; color: #444; font-weight: bold; background: #f8f9fa; padding: 4px; border-radius: 4px;}
         
         button { cursor: pointer; padding: 8px 12px; font-weight: bold; color: white; border: none; border-radius: 3px; }
-        .btn-up { background: #28a745; }
-        .btn-down { background: #dc3545; }
-        .btn-win { background: #ffc107; color: #000; margin-left: 5px; border: 1px solid #d39e00; font-size: 14px; padding: 6px 8px;}
-        .btn-crypt { background: #343a40; font-size: 12px; margin-right: 10px; }
-        .btn-call { background: #6a0dad; font-size: 12px; padding: 6px 10px; }
-        .btn-call:hover { background: #5a0b94; }
         
+        /* Action Buttons */
+        .btn-win-room { background: #28a745; width: 75px; }
+        .btn-lose-room { background: #dc3545; width: 75px; }
+        .btn-tgt { background: #6c757d; width: 75px; }
+        .btn-force { background: #17a2b8; margin-left: 5px; font-size: 12px; padding: 6px 10px;}
+        
+        .btn-overall-win { background: #ffc107; color: #000; margin-left: 5px; border: 1px solid #d39e00; font-size: 14px; padding: 6px 8px;}
         .btn-add { background: #17a2b8; width: 100%; margin-top: 10px; padding: 12px; }
         .btn-reset { background: #ff7518; width: 100%; margin-top: 10px; padding: 12px; }
     </style>
@@ -48,6 +60,10 @@
     <script>
         const MAX_TOTAL_FLOORS = 8;
         
+        // --- EDIT ROOM CAPACITIES HERE ---
+        // Array maps to Floors 1 through 8. Change to 2, 3, etc. if rooms hold more teams.
+        const floorCapacities = [1, 1, 1, 1, 1, 1, 1, 1]; 
+        
         const floorNames = [
             "The Crypt (Waiting Room)",
             "Floor 1: Count the Mice",
@@ -60,12 +76,16 @@
             "Floor 8: The Crypt Keeper's Truth"
         ];
 
-        // Ensure teams get a timestamp for queue sorting if they are new
-        let defaultTeams = Array.from({length: 8}, (_, i) => ({ id: i+1, name: `Team ${i+1}`, floor: 0, queueTime: Date.now() + i }));
+        let defaultTeams = Array.from({length: 8}, (_, i) => ({ 
+            id: i+1, name: `Team ${i+1}`, floor: 0, queueTime: Date.now() + i, targetFloor: 1 
+        }));
         let teams = JSON.parse(localStorage.getItem('hauntedGameData')) || defaultTeams;
         
-        // Retrofit queueTime for existing saved data
-        teams.forEach((t, i) => { if (!t.queueTime) t.queueTime = Date.now() + i; });
+        // Retrofit older saves with new required variables
+        teams.forEach((t, i) => { 
+            if (!t.queueTime) t.queueTime = Date.now() + i; 
+            if (!t.targetFloor) t.targetFloor = 1; 
+        });
         
         let unlockedFloor = parseInt(localStorage.getItem('hauntedUnlockedFloor')) || 0;
 
@@ -81,16 +101,41 @@
             // 1. Build The Crypt Queue
             const cryptTeams = teams.filter(t => t.floor === 0).sort((a, b) => a.queueTime - b.queueTime);
             const queueHtml = cryptTeams.length > 0 
-                ? cryptTeams.map((t, i) => `${i+1}. ${t.name}`).join('<span class="queue-arrow">➔</span>') 
+                ? cryptTeams.map((t, i) => `${i+1}. ${t.name} <span class="queue-target">(Tgt: Flr ${t.targetFloor})</span>`).join('<span class="queue-arrow">➔</span>') 
                 : "<em>The Crypt is empty</em>";
 
             // 2. Build Floor Callers
             let floorCallersHtml = `<div class="floor-call-grid">`;
             for(let i = 1; i <= MAX_TOTAL_FLOORS; i++) {
+                let currentCount = teams.filter(t => t.floor === i).length;
+                let cap = floorCapacities[i-1];
+                let isFull = currentCount >= cap;
+                let nextTeam = teams.filter(t => t.floor === 0 && t.targetFloor === i).sort((a,b) => a.queueTime - b.queueTime)[0];
+
+                let statusColor = isFull ? "#dc3545" : "#28a745";
+                let statusText = `<span style="color:${statusColor}; font-weight:bold;">[ ${currentCount} / ${cap} ]</span>`;
+                
+                let btnState = "";
+                let btnClass = "";
+                let btnText = "";
+
+                if (isFull) {
+                    btnClass = "btn-disabled";
+                    btnText = "Floor Full";
+                    btnState = "disabled";
+                } else if (nextTeam) {
+                    btnClass = "btn-call-ready";
+                    btnText = `Call: ${nextTeam.name}`;
+                } else {
+                    btnClass = "btn-disabled";
+                    btnText = "No Teams Queued";
+                    btnState = "disabled";
+                }
+
                 floorCallersHtml += `
                     <div class="floor-call-row">
-                        <span class="floor-call-name">${floorNames[i]}</span>
-                        <button class="btn-call" onclick="callNextToFloor(${i})">Call Next</button>
+                        <span class="floor-call-name">${statusText} ${floorNames[i]}</span>
+                        <button class="${btnClass}" ${btnState} onclick="callNextToFloor(${i})">${btnText}</button>
                     </div>
                 `;
             }
@@ -99,24 +144,34 @@
             // 3. Build Team Manual Controls
             let manualTeamsHtml = `<div>`;
             teams.forEach(t => {
-                let currentFloorName = floorNames[t.floor] || `Floor ${t.floor}`;
-                manualTeamsHtml += `
-                    <div class="admin-team">
-                        <button class="btn-crypt" title="Send back to Crypt" onclick="sendToCrypt(${t.id})">👻 To Crypt</button>
-                        <button class="btn-down" onclick="moveTeam(${t.id}, -1)">-</button>
+                let rowHtml = "";
+                if (t.floor === 0) {
+                    // Team is in Crypt
+                    rowHtml = `
+                        <button class="btn-tgt" title="Decrease target floor" onclick="changeTarget(${t.id}, -1)">- Tgt</button>
                         <input type="text" value="${t.name}" onchange="updateName(${t.id}, this.value)">
-                        <span class="floor-label">${currentFloorName}</span>
-                        <button class="btn-up" onclick="moveTeam(${t.id}, 1)">+</button>
-                        <button class="btn-win" title="Declare Winner" onclick="declareWinner(${t.id})">🏆</button>
-                    </div>
-                `;
+                        <span class="floor-label">Crypt ➔ Target: Floor ${t.targetFloor}</span>
+                        <button class="btn-tgt" title="Increase target floor" onclick="changeTarget(${t.id}, 1)">+ Tgt</button>
+                        <button class="btn-force" title="Bypass queue and force team to target floor" onclick="forceGo(${t.id})">Force Go</button>
+                    `;
+                } else {
+                    // Team is Active in a Room
+                    rowHtml = `
+                        <button class="btn-lose-room" title="Lost: Drop 1 level and return to Crypt" onclick="loseRoom(${t.id})">💀 Lose</button>
+                        <input type="text" value="${t.name}" onchange="updateName(${t.id}, this.value)">
+                        <span class="floor-label">${floorNames[t.floor]}</span>
+                        <button class="btn-win-room" title="Won: Advance 1 level and return to Crypt" onclick="winRoom(${t.id})">🎉 Win</button>
+                        <button class="btn-overall-win" title="Declare Overall Winner" onclick="declareWinner(${t.id})">🏆</button>
+                    `;
+                }
+                manualTeamsHtml += `<div class="admin-team">${rowHtml}</div>`;
             });
             manualTeamsHtml += `</div>`;
 
             // Inject all sections
             adminArea.innerHTML = `
                 <div class="admin-section" style="background:#fff3cd; border: 1px solid #ffeeba;">
-                    <div class="section-title">The Crypt Queue (Next Up)</div>
+                    <div class="section-title">The Crypt Queue</div>
                     <div class="queue-display">${queueHtml}</div>
                 </div>
 
@@ -126,7 +181,7 @@
                 </div>
 
                 <div class="admin-section">
-                    <div class="section-title">Manual Team Management</div>
+                    <div class="section-title">Team Management & Outcomes</div>
                     ${manualTeamsHtml}
                 </div>
             `;
@@ -134,41 +189,56 @@
 
         // --- Core Functions ---
 
-        function sendToCrypt(id) {
+        function winRoom(id) {
             const team = teams.find(t => t.id === id);
-            if (team && team.floor !== 0) {
+            if (team) {
+                team.targetFloor = Math.min(MAX_TOTAL_FLOORS, team.floor + 1);
                 team.floor = 0;
-                team.queueTime = Date.now(); // Puts them at the back of the line
+                team.queueTime = Date.now();
+                saveState();
+            }
+        }
+
+        function loseRoom(id) {
+            const team = teams.find(t => t.id === id);
+            if (team) {
+                team.targetFloor = Math.max(1, team.floor - 1);
+                team.floor = 0;
+                team.queueTime = Date.now();
+                saveState();
+            }
+        }
+
+        function changeTarget(id, direction) {
+            const team = teams.find(t => t.id === id);
+            if (team) {
+                team.targetFloor += direction;
+                if (team.targetFloor < 1) team.targetFloor = 1;
+                if (team.targetFloor > MAX_TOTAL_FLOORS) team.targetFloor = MAX_TOTAL_FLOORS;
+                saveState();
+            }
+        }
+
+        function forceGo(id) {
+            const team = teams.find(t => t.id === id);
+            if (team && team.targetFloor >= 1 && team.targetFloor <= MAX_TOTAL_FLOORS) {
+                team.floor = team.targetFloor;
+                if (team.floor > unlockedFloor) {
+                    unlockedFloor = team.floor;
+                    localStorage.setItem('hauntedUnlockedFloor', unlockedFloor);
+                }
                 saveState();
             }
         }
 
         function callNextToFloor(floorNum) {
-            const cryptTeams = teams.filter(t => t.floor === 0).sort((a, b) => a.queueTime - b.queueTime);
-            if (cryptTeams.length > 0) {
-                const nextTeam = cryptTeams[0];
+            const queuedTeams = teams.filter(t => t.floor === 0 && t.targetFloor === floorNum).sort((a,b) => a.queueTime - b.queueTime);
+            if (queuedTeams.length > 0) {
+                const nextTeam = queuedTeams[0];
                 nextTeam.floor = floorNum;
                 
                 if (floorNum > unlockedFloor) {
                     unlockedFloor = floorNum;
-                    localStorage.setItem('hauntedUnlockedFloor', unlockedFloor);
-                }
-                saveState();
-            } else {
-                alert("The Crypt is currently empty! No teams to call.");
-            }
-        }
-
-        function moveTeam(id, direction) {
-            const team = teams.find(t => t.id === id);
-            if (team && (team.floor + direction) >= 0 && (team.floor + direction) <= MAX_TOTAL_FLOORS) {
-                team.floor += direction;
-                
-                // If moved to crypt manually, update queue time to put at end of line
-                if (team.floor === 0) team.queueTime = Date.now();
-                
-                if (team.floor > unlockedFloor) {
-                    unlockedFloor = team.floor;
                     localStorage.setItem('hauntedUnlockedFloor', unlockedFloor);
                 }
                 saveState();
@@ -193,7 +263,7 @@
 
         function addTeam() {
             const newId = teams.length ? Math.max(...teams.map(t => t.id)) + 1 : 1;
-            teams.push({ id: newId, name: `Team ${newId}`, floor: 0, queueTime: Date.now() });
+            teams.push({ id: newId, name: `Team ${newId}`, floor: 0, queueTime: Date.now(), targetFloor: 1 });
             saveState();
         }
 
@@ -201,7 +271,8 @@
             if(confirm("Reset all teams to The Crypt, clear Fog of War, and reset Winner?")) {
                 teams.forEach((t, i) => {
                     t.floor = 0;
-                    t.queueTime = Date.now() + i; // Resets order to default list order
+                    t.targetFloor = 1;
+                    t.queueTime = Date.now() + i;
                 });
                 unlockedFloor = 0;
                 localStorage.setItem('hauntedUnlockedFloor', 0);
