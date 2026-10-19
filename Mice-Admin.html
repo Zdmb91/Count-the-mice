@@ -335,6 +335,9 @@
 
         // Initial Load
         fetchState();
+        // Fallback polling: checks for updates every 2 seconds if WebSockets are blocked
+        setInterval(fetchState, 2000);
+    </script>
     </script>
 </body>
 </html>
