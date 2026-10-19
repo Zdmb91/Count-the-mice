@@ -106,7 +106,7 @@
         // Supabase Initialization
         const SUPABASE_URL = 'https://alchlikgtmkpghujvgcn.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFsY2hsaWtndG1rcGh1anZnY24iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc5MjQyNzQwNywiZXhwIjoyMODAwMzQwN30.PUrYlqwiu1NflpUdz2OCj5_zen1MM3aH5vi5PGrp_E4';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const MAX_TOTAL_FLOORS = 8;
         const floorCapacities = [10, 10, 1, 1, 1, 1, 1, 2]; 
@@ -131,7 +131,7 @@
 
         // Fetch state from Supabase on load
         async function fetchState() {
-            const { data, error } = await supabase
+            const { data, error } = await dbClient
                 .from('game_state')
                 .select('data')
                 .eq('id', 1)
@@ -146,7 +146,7 @@
         // Push updated state to Supabase
         async function saveState() {
             renderAdmin(); // Immediate local render for responsiveness
-            await supabase
+            await dbClient
                 .from('game_state')
                 .update({ data: gameState })
                 .eq('id', 1);
@@ -317,7 +317,7 @@
         }
 
         // Realtime listener for cross-device sync
-        supabase
+        dbClient
             .channel('public:game_state')
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_state' }, payload => {
                 if (payload.new && payload.new.data) {
