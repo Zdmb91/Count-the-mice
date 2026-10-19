@@ -225,7 +225,7 @@
         // Supabase Initialization
         const SUPABASE_URL = 'https://alchlikgtmkpghujvgcn.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFsY2hsaWtndG1rcGh1anZnY24iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc5MjQyNzQwNywiZXhwIjoyMTA4MDAzNDA3~~~';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const MAX_TOTAL_FLOORS = 8;
         
