@@ -209,7 +209,8 @@
         function winRoom(id) {
             const team = teams.find(t => t.id === id);
             if (team) {
-                team.targetFloor = Math.min(MAX_TOTAL_FLOORS, team.floor + 1);
+                // Winner goes DOWN a floor (subtract 1), minimum floor 1
+                team.targetFloor = Math.max(1, team.floor - 1);
                 team.floor = 0;
                 team.queueTime = Date.now();
                 saveState();
@@ -219,7 +220,8 @@
         function loseRoom(id) {
             const team = teams.find(t => t.id === id);
             if (team) {
-                team.targetFloor = Math.max(1, team.floor - 1);
+                // Loser goes UP a floor (add 1), maximum MAX_TOTAL_FLOORS
+                team.targetFloor = Math.min(MAX_TOTAL_FLOORS, team.floor + 1);
                 team.floor = 0;
                 team.queueTime = Date.now();
                 saveState();
@@ -245,7 +247,7 @@
 
                 if (currentCount >= cap) {
                     alert(`Cannot force ${team.name} to ${floorNames[team.targetFloor]}.\n\nThis floor is currently at its maximum capacity of ${cap}.`);
-                    return; // Stop the function from proceeding
+                    return; 
                 }
 
                 team.floor = team.targetFloor;
