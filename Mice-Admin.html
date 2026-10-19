@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Haunted House - Admin Dashboard</title>
+    <!-- Include Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 15px; margin: 0; display: flex; justify-content: center; }
         
@@ -15,7 +17,6 @@
 
         h2 { margin: 0 0 10px 0; font-size: 20px; color: #222; }
 
-        /* Main Dashboard Grid Layout (Side-by-Side) */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -36,12 +37,10 @@
         .admin-section { background: #e9ecef; padding: 12px; border-radius: 6px; }
         .section-title { font-weight: bold; font-size: 15px; border-bottom: 2px solid #ccc; padding-bottom: 5px; margin-bottom: 8px; color: #333; }
         
-        /* Queue Styles */
         .queue-display { font-size: 13px; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; color: #555; }
         .queue-arrow { color: #ff7518; margin: 0 5px; }
         .queue-target { font-size: 11px; color: #888; font-weight: normal; }
         
-        /* Floor Controls Styles */
         .floor-call-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
         .floor-call-row { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; }
         .floor-call-name { font-weight: bold; font-size: 12px; color: #444; }
@@ -55,7 +54,6 @@
         .btn-call-ready { background: #28a745; font-size: 11px; padding: 5px 8px; color: #fff; border: 1px solid #1e7e34; animation: pulse-green 2s infinite; font-weight: bold; border-radius: 3px; cursor: pointer; }
         .btn-disabled { background: #6c757d; font-size: 11px; padding: 5px 8px; cursor: not-allowed; opacity: 0.6; border: none; color: #fff; font-weight: bold; border-radius: 3px; }
         
-        /* Team Controls Styles */
         .admin-team { display: flex; align-items: center; margin-bottom: 6px; justify-content: space-between; background: #fff; padding: 6px; border-radius: 4px; border: 1px solid #ccc;}
         .admin-team input { flex: 1; margin: 0 6px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
         .floor-label { width: 150px; text-align: left; padding-left: 6px; font-size: 11px; color: #444; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -75,14 +73,13 @@
 </head>
 <body>
     <div id="admin-panel">
-        <h2>Admin Controls Dashboard</h2>
+        <h2>Admin Controls Dashboard (Cloud Synced)</h2>
         
         <div class="dashboard-grid">
-            <!-- Left Column: Queue & Auto-Call -->
             <div class="column">
                 <div class="admin-section" style="background:#fff3cd; border: 1px solid #ffeeba;">
                     <div class="section-title">The Crypt Queue</div>
-                    <div class="queue-display" id="queue-box"></div>
+                    <div class="queue-display" id="queue-box">Loading...</div>
                 </div>
 
                 <div class="admin-section">
@@ -91,7 +88,6 @@
                 </div>
             </div>
 
-            <!-- Right Column: Team Management -->
             <div class="column">
                 <div class="admin-section">
                     <div class="section-title">Team Management & Outcomes</div>
@@ -107,9 +103,12 @@
     </div>
 
     <script>
+        // Supabase Initialization
+        const SUPABASE_URL = 'https://alchlikgtmkpghujvgcn.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFsY2hsaWtndG1rcGh1anZnY24iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc5MjQyNzQwNywiZXhwIjoyMODAwMzQwN30.PUrYlqwiu1NflpUdz2OCj5_zen1MM3aH5vi5PGrp_E4';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         const MAX_TOTAL_FLOORS = 8;
-        
-        // Adjust individual room capacities here if needed
         const floorCapacities = [10, 10, 1, 1, 1, 1, 1, 2]; 
         
         const floorNames = [
@@ -124,31 +123,45 @@
             "Floor 8: The Crypt Keeper's Truth"
         ];
 
-        let defaultTeams = Array.from({length: 8}, (_, i) => ({ 
-            id: i+1, name: `Team ${i+1}`, floor: 0, queueTime: Date.now() + i, targetFloor: 1 
-        }));
-        let teams = JSON.parse(localStorage.getItem('hauntedGameData')) || defaultTeams;
-        
-        teams.forEach((t, i) => { 
-            if (!t.queueTime) t.queueTime = Date.now() + i; 
-            if (!t.targetFloor) t.targetFloor = 1; 
-        });
-        
-        let unlockedFloor = parseInt(localStorage.getItem('hauntedUnlockedFloor')) || 0;
+        let gameState = {
+            teams: [],
+            unlockedFloor: 0,
+            winnerName: null
+        };
 
-        function saveState() {
-            localStorage.setItem('hauntedGameData', JSON.stringify(teams));
-            renderAdmin();
+        // Fetch state from Supabase on load
+        async function fetchState() {
+            const { data, error } = await supabase
+                .from('game_state')
+                .select('data')
+                .eq('id', 1)
+                .single();
+            
+            if (data && data.data) {
+                gameState = data.data;
+                renderAdmin();
+            }
+        }
+
+        // Push updated state to Supabase
+        async function saveState() {
+            renderAdmin(); // Immediate local render for responsiveness
+            await supabase
+                .from('game_state')
+                .update({ data: gameState })
+                .eq('id', 1);
         }
 
         function renderAdmin() {
-            // 1. Build Queue Box
+            const teams = gameState.teams || [];
+            
+            // 1. Queue Box
             const cryptTeams = teams.filter(t => t.floor === 0).sort((a, b) => a.queueTime - b.queueTime);
             document.getElementById("queue-box").innerHTML = cryptTeams.length > 0 
                 ? cryptTeams.map((t, i) => `${i+1}. ${t.name} <span class="queue-target">(Tgt: Flr ${t.targetFloor})</span>`).join('<span class="queue-arrow">➔</span>') 
                 : "<em>The Crypt is empty</em>";
 
-            // 2. Build Floor Callers
+            // 2. Floor Callers
             let floorCallersHtml = "";
             for(let i = 1; i <= MAX_TOTAL_FLOORS; i++) {
                 let currentCount = teams.filter(t => t.floor === i).length;
@@ -177,7 +190,7 @@
             }
             document.getElementById("floor-call-box").innerHTML = floorCallersHtml;
 
-            // 3. Build Team Management Box
+            // 3. Team Management Box
             let manualTeamsHtml = "";
             teams.forEach(t => {
                 let currentFloorName = floorNames[t.floor] || `Floor ${t.floor}`;
@@ -185,7 +198,7 @@
                     manualTeamsHtml += `
                         <div class="admin-team">
                             <button class="btn-tgt" onclick="changeTarget(${t.id}, -1)">- Tgt</button>
-                            <input type="text" value="${t.name}" onchange="updateName(${t.id}, this.value)">
+                            <input type="text" id="name-${t.id}" value="${t.name}" onchange="updateName(${t.id}, this.value)">
                             <span class="floor-label">Crypt ➔ Flr ${t.targetFloor}</span>
                             <button class="btn-tgt" onclick="changeTarget(${t.id}, 1)">+ Tgt</button>
                             <button class="btn-force" onclick="forceGo(${t.id})">Force</button>
@@ -195,7 +208,7 @@
                     manualTeamsHtml += `
                         <div class="admin-team">
                             <button class="btn-lose-room" onclick="loseRoom(${t.id})">💀 Lose</button>
-                            <input type="text" value="${t.name}" onchange="updateName(${t.id}, this.value)">
+                            <input type="text" id="name-${t.id}" value="${t.name}" onchange="updateName(${t.id}, this.value)">
                             <span class="floor-label">${currentFloorName}</span>
                             <button class="btn-win-room" onclick="winRoom(${t.id})">🎉 Win</button>
                             <button class="btn-overall-win" onclick="declareWinner(${t.id})">🏆</button>
@@ -207,9 +220,8 @@
         }
 
         function winRoom(id) {
-            const team = teams.find(t => t.id === id);
+            const team = gameState.teams.find(t => t.id === id);
             if (team) {
-                // Winner goes DOWN a floor (subtract 1), minimum floor 1
                 team.targetFloor = Math.max(1, team.floor - 1);
                 team.floor = 0;
                 team.queueTime = Date.now();
@@ -218,9 +230,8 @@
         }
 
         function loseRoom(id) {
-            const team = teams.find(t => t.id === id);
+            const team = gameState.teams.find(t => t.id === id);
             if (team) {
-                // Loser goes UP a floor (add 1), maximum MAX_TOTAL_FLOORS
                 team.targetFloor = Math.min(MAX_TOTAL_FLOORS, team.floor + 1);
                 team.floor = 0;
                 team.queueTime = Date.now();
@@ -229,7 +240,7 @@
         }
 
         function changeTarget(id, direction) {
-            const team = teams.find(t => t.id === id);
+            const team = gameState.teams.find(t => t.id === id);
             if (team) {
                 team.targetFloor += direction;
                 if (team.targetFloor < 1) team.targetFloor = 1;
@@ -239,10 +250,9 @@
         }
 
         function forceGo(id) {
-            const team = teams.find(t => t.id === id);
+            const team = gameState.teams.find(t => t.id === id);
             if (team && team.targetFloor >= 1 && team.targetFloor <= MAX_TOTAL_FLOORS) {
-                // Check Capacity Before Forcing
-                let currentCount = teams.filter(tm => tm.floor === team.targetFloor).length;
+                let currentCount = gameState.teams.filter(tm => tm.floor === team.targetFloor).length;
                 let cap = floorCapacities[team.targetFloor - 1];
 
                 if (currentCount >= cap) {
@@ -251,37 +261,35 @@
                 }
 
                 team.floor = team.targetFloor;
-                if (team.floor > unlockedFloor) {
-                    unlockedFloor = team.floor;
-                    localStorage.setItem('hauntedUnlockedFloor', unlockedFloor);
+                if (team.floor > gameState.unlockedFloor) {
+                    gameState.unlockedFloor = team.floor;
                 }
                 saveState();
             }
         }
 
         function callNextToFloor(floorNum) {
-            const queuedTeams = teams.filter(t => t.floor === 0 && t.targetFloor === floorNum).sort((a,b) => a.queueTime - b.queueTime);
+            const queuedTeams = gameState.teams.filter(t => t.floor === 0 && t.targetFloor === floorNum).sort((a,b) => a.queueTime - b.queueTime);
             if (queuedTeams.length > 0) {
                 const nextTeam = queuedTeams[0];
                 nextTeam.floor = floorNum;
-                if (floorNum > unlockedFloor) {
-                    unlockedFloor = floorNum;
-                    localStorage.setItem('hauntedUnlockedFloor', unlockedFloor);
+                if (floorNum > gameState.unlockedFloor) {
+                    gameState.unlockedFloor = floorNum;
                 }
                 saveState();
             }
         }
 
         function declareWinner(id) {
-            const team = teams.find(t => t.id === id);
+            const team = gameState.teams.find(t => t.id === id);
             if (confirm(`Are you sure you want to declare ${team.name} as the WINNER?`)) {
-                localStorage.setItem('hauntedWinnerName', team.name);
-                window.dispatchEvent(new StorageEvent('storage', { key: 'hauntedWinnerName' }));
+                gameState.winnerName = team.name;
+                saveState();
             }
         }
 
         function updateName(id, newName) {
-            const team = teams.find(t => t.id === id);
+            const team = gameState.teams.find(t => t.id === id);
             if (team) {
                 team.name = newName;
                 saveState();
@@ -289,6 +297,7 @@
         }
 
         function addTeam() {
+            const teams = gameState.teams;
             const newId = teams.length ? Math.max(...teams.map(t => t.id)) + 1 : 1;
             teams.push({ id: newId, name: `Team ${newId}`, floor: 0, queueTime: Date.now(), targetFloor: 1 });
             saveState();
@@ -296,19 +305,30 @@
 
         function resetGame() {
             if(confirm("Reset all teams to The Crypt, clear Fog of War, and reset Winner?")) {
-                teams.forEach((t, i) => {
+                gameState.teams.forEach((t, i) => {
                     t.floor = 0;
                     t.targetFloor = 1;
                     t.queueTime = Date.now() + i;
                 });
-                unlockedFloor = 0;
-                localStorage.setItem('hauntedUnlockedFloor', 0);
-                localStorage.removeItem('hauntedWinnerName');
+                gameState.unlockedFloor = 0;
+                gameState.winnerName = null;
                 saveState();
             }
         }
 
-        saveState();
+        // Realtime listener for cross-device sync
+        supabase
+            .channel('public:game_state')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_state' }, payload => {
+                if (payload.new && payload.new.data) {
+                    gameState = payload.new.data;
+                    renderAdmin();
+                }
+            })
+            .subscribe();
+
+        // Initial Load
+        fetchState();
     </script>
 </body>
 </html>
