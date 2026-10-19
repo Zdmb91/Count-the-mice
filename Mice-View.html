@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Haunted Yard - Viewer</title>
+    <!-- Include Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -157,7 +159,6 @@
             border: 2px solid #000; border-radius: 4px; font-size: 11px; font-weight: bold; box-shadow: 0 3px 5px rgba(0,0,0,1); 
         }
 
-        /* --- Winner Celebration Overlay --- */
         #winner-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.92); z-index: 100;
@@ -190,7 +191,7 @@
             <span class="celebration-emoji" style="animation-delay: 0.4s;">🎃</span>
         </div>
         <h1 id="winner-title"></h1>
-        <div id="winner-sub">Has Escaped the Haunted House!</div>
+        <div id="winner-sub">Has Escaped the Haunted Yard!</div>
     </div>
 
     <div id="detailed-moon"></div>
@@ -221,13 +222,17 @@
     </div>
 
     <script>
+        // Supabase Initialization
+        const SUPABASE_URL = 'https://alchlikgtmkpghujvgcn.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFsY2hsaWtndG1rcGh1anZnY24iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc5MjQyNzQwNywiZXhwIjoyMTA4MDAzNDA3~~~';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         const MAX_TOTAL_FLOORS = 8;
         
-        // Viewer Names (Hidden Numbers)
         const floorNames = [
             "The Crypt",
             "Count the Mice",
-            "The Phantom's Parlor",
+            "The Phantom's Violin",
             "The Hall of Mirrors",
             "Blindfolded Pumpkin Sculpting",
             "The Mirror Trap",
@@ -236,16 +241,33 @@
             "The Crypt Keeper's Truth"
         ];
         
-        let defaultTeams = Array.from({length: 8}, (_, i) => ({ id: i+1, name: `Team ${i+1}`, floor: 0 }));
+        let gameState = {
+            teams: [],
+            unlockedFloor: 0,
+            winnerName: null
+        };
+
+        async function fetchState() {
+            const { data, error } = await supabase
+                .from('game_state')
+                .select('data')
+                .eq('id', 1)
+                .single();
+            
+            if (data && data.data) {
+                gameState = data.data;
+                renderBoard();
+            }
+        }
         
         function renderBoard() {
-            let teams = JSON.parse(localStorage.getItem('hauntedGameData')) || defaultTeams;
-            let unlockedFloor = parseInt(localStorage.getItem('hauntedUnlockedFloor')) || 0;
+            let teams = gameState.teams || [];
+            let unlockedFloor = gameState.unlockedFloor || 0;
             
-            let currentMax = Math.max(0, ...teams.map(t => t.floor));
+            let currentMax = teams.length ? Math.max(0, ...teams.map(t => t.floor)) : 0;
             if (currentMax > unlockedFloor) {
                 unlockedFloor = currentMax;
-                localStorage.setItem('hauntedUnlockedFloor', unlockedFloor);
+                gameState.unlockedFloor = unlockedFloor;
             }
 
             const board = document.getElementById("game-board");
@@ -279,8 +301,7 @@
                 board.appendChild(floorDiv);
             }
 
-            // Check Winner State
-            const winnerName = localStorage.getItem('hauntedWinnerName');
+            const winnerName = gameState.winnerName;
             const overlay = document.getElementById('winner-overlay');
             if (winnerName) {
                 document.getElementById('winner-title').innerText = winnerName;
@@ -290,13 +311,18 @@
             }
         }
 
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'hauntedGameData' || e.key === 'hauntedUnlockedFloor' || e.key === 'hauntedWinnerName') {
-                renderBoard();
-            }
-        });
+        // Real-time updates subscription
+        supabase
+            .channel('public:game_state')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_state' }, payload => {
+                if (payload.new && payload.new.data) {
+                    gameState = payload.new.data;
+                    renderBoard();
+                }
+            })
+            .subscribe();
 
-        renderBoard();
+        fetchState();
     </script>
 </body>
 </html>
