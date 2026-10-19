@@ -322,7 +322,12 @@
             })
             .subscribe();
 
+        // Initial fetch on load
         fetchState();
+
+        // Fallback polling: refreshes the viewer every 1.5 seconds if WebSockets are blocked
+        setInterval(fetchState, 1500);
+    </script>
     </script>
 </body>
 </html>
