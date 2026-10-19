@@ -222,7 +222,7 @@
     </div>
 
     <script>
-        // Supabase Initialization
+        // Supabase Initialization (using dbClient to avoid namespace collisions)
         const SUPABASE_URL = 'https://alchlikgtmkpghujvgcn.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFsY2hsaWtndG1rcGh1anZnY24iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc5MjQyNzQwNywiZXhwIjoyMTA4MDAzNDA3~~~';
         const dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -248,7 +248,7 @@
         };
 
         async function fetchState() {
-            const { data, error } = await supabase
+            const { data, error } = await dbClient
                 .from('game_state')
                 .select('data')
                 .eq('id', 1)
@@ -311,8 +311,8 @@
             }
         }
 
-        // Real-time updates subscription
-        supabase
+        // Real-time updates subscription using dbClient
+        dbClient
             .channel('public:game_state')
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_state' }, payload => {
                 if (payload.new && payload.new.data) {
