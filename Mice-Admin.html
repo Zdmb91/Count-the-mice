@@ -131,15 +131,21 @@
 
         // Fetch state from Supabase on load
         async function fetchState() {
-            const { data, error } = await dbClient
-                .from('game_state')
-                .select('data')
-                .eq('id', 1)
-                .single();
-            
-            if (data && data.data) {
-                gameState = data.data;
-                renderAdmin();
+            try {
+                const { data, error } = await dbClient
+                    .from('game_state')
+                    .select('data')
+                    .eq('id', 1)
+                    .single();
+                
+                if (data && data.data) {
+                    gameState = data.data;
+                    renderAdmin();
+                } else {
+                    console.error("No data returned from Supabase:", error);
+                }
+            } catch (err) {
+                console.error("Fetch error:", err);
             }
         }
 
