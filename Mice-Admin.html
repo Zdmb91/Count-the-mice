@@ -15,7 +15,25 @@
             display: flex; flex-direction: column; height: 93vh; box-sizing: border-box;
         }
 
-        h2 { margin: 0 0 10px 0; font-size: 20px; color: #222; }
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        h2 { margin: 0; font-size: 20px; color: #222; }
+
+        .btn-sync-toggle {
+            background: #28a745;
+            padding: 6px 14px;
+            font-size: 13px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .btn-sync-paused {
+            background: #dc3545 !important;
+        }
 
         .dashboard-grid {
             display: grid;
@@ -73,7 +91,10 @@
 </head>
 <body>
     <div id="admin-panel">
-        <h2>Admin Controls Dashboard (Cloud Synced)</h2>
+        <div class="header-bar">
+            <h2>Admin Controls Dashboard (Cloud Synced)</h2>
+            <button id="sync-toggle-btn" class="btn-sync-toggle" onclick="toggleSync()">⏸️ Pause Auto-Sync</button>
+        </div>
         
         <div class="dashboard-grid">
             <div class="column">
@@ -129,8 +150,32 @@
             winnerName: null
         };
 
-        // Fetch state from Supabase on load
-        async function fetchState() {
+        let isSyncPaused = false;
+
+        function toggleSync() {
+            isSyncPaused = !isSyncPaused;
+            const btn = document.getElementById('sync-toggle-btn');
+            if (isSyncPaused) {
+                btn.innerText = "▶️ Resume Auto-Sync (PAUSED)";
+                btn.classList.add('btn-sync-paused');
+            } else {
+                btn.innerText = "⏸️ Pause Auto-Sync";
+                btn.classList.remove('btn-sync-paused');
+                fetchState(true); // Immediate sync upon resuming
+            }
+        }
+
+        // Check if user is actively typing in a team name input
+        function isTypingInInput() {
+            const active = document.activeElement;
+            return active && active.tagName === 'INPUT' && active.id.startsWith('name-');
+        }
+
+        // Fetch state from Supabase on load or poll
+        async function fetchState(force = false) {
+            if (!force && (isSyncPaused || isTypingInInput())) {
+                return; // Skip refresh while paused or actively typing a name
+            }
             try {
                 const { data, error } = await dbClient
                     .from('game_state')
@@ -139,6 +184,7 @@
                     .single();
                 
                 if (data && data.data) {
+                    if (!force && (isSyncPaused || isTypingInInput())) return;
                     gameState = data.data;
                     renderAdmin();
                 } else {
@@ -326,7 +372,7 @@
         dbClient
             .channel('public:game_state')
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_state' }, payload => {
-                if (payload.new && payload.new.data) {
+                if (!isSyncPaused && !isTypingInInput() && payload.new && payload.new.data) {
                     gameState = payload.new.data;
                     renderAdmin();
                 }
@@ -334,10 +380,9 @@
             .subscribe();
 
         // Initial Load
-        fetchState();
+        fetchState(true);
         // Fallback polling: checks for updates every 2 seconds if WebSockets are blocked
-        setInterval(fetchState, 2000);
-    </script>
+        setInterval(() => fetchState(false), 2000);
     </script>
 </body>
 </html>
