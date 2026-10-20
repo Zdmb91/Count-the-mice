@@ -11,7 +11,7 @@
         
         #admin-panel { 
             background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); 
-            width: 100%; max-width: 1350px; 
+            width: 100%; max-width: 1400px; 
             display: flex; flex-direction: column; height: 93vh; box-sizing: border-box;
         }
 
@@ -37,7 +37,7 @@
 
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1.15fr;
             gap: 15px;
             flex: 1;
             overflow: hidden;
@@ -55,13 +55,18 @@
         .admin-section { background: #e9ecef; padding: 12px; border-radius: 6px; }
         .section-title { font-weight: bold; font-size: 15px; border-bottom: 2px solid #ccc; padding-bottom: 5px; margin-bottom: 8px; color: #333; }
         
-        .queue-display { font-size: 13px; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; color: #555; }
-        .queue-arrow { color: #ff7518; margin: 0 5px; }
+        .queue-display { font-size: 13px; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; color: #555; line-height: 1.5; }
+        .queue-item { display: inline-block; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; padding: 3px 6px; margin: 2px 0; }
+        .queue-members { font-size: 11px; color: #0056b3; font-weight: normal; display: block; }
+        .queue-arrow { color: #ff7518; margin: 0 6px; font-weight: bold; }
         .queue-target { font-size: 11px; color: #888; font-weight: normal; }
         
         .floor-call-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
         .floor-call-row { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; }
+        .floor-call-info { display: flex; flex-direction: column; gap: 2px; }
         .floor-call-name { font-weight: bold; font-size: 12px; color: #444; }
+        .floor-occupants { font-size: 11px; color: #555; }
+        .next-up-roster { font-size: 11px; color: #1e7e34; font-weight: bold; }
         
         @keyframes pulse-green {
             0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
@@ -69,12 +74,17 @@
             100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
         }
 
-        .btn-call-ready { background: #28a745; font-size: 11px; padding: 5px 8px; color: #fff; border: 1px solid #1e7e34; animation: pulse-green 2s infinite; font-weight: bold; border-radius: 3px; cursor: pointer; }
-        .btn-disabled { background: #6c757d; font-size: 11px; padding: 5px 8px; cursor: not-allowed; opacity: 0.6; border: none; color: #fff; font-weight: bold; border-radius: 3px; }
+        .btn-call-ready { background: #28a745; font-size: 11px; padding: 6px 10px; color: #fff; border: 1px solid #1e7e34; animation: pulse-green 2s infinite; font-weight: bold; border-radius: 3px; cursor: pointer; white-space: nowrap; }
+        .btn-disabled { background: #6c757d; font-size: 11px; padding: 5px 8px; cursor: not-allowed; opacity: 0.6; border: none; color: #fff; font-weight: bold; border-radius: 3px; white-space: nowrap; }
         
-        .admin-team { display: flex; align-items: center; margin-bottom: 6px; justify-content: space-between; background: #fff; padding: 6px; border-radius: 4px; border: 1px solid #ccc;}
-        .admin-team input { flex: 1; margin: 0 6px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
-        .floor-label { width: 150px; text-align: left; padding-left: 6px; font-size: 11px; color: #444; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .admin-team { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+        .admin-team-top { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+        .admin-team-top input { flex: 1; margin: 0 6px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .admin-team-bottom { display: flex; align-items: center; width: 100%; }
+        .members-input { flex: 1; padding: 4px 6px; border: 1px dashed #bbb; border-radius: 4px; font-size: 11px; color: #333; background: #fafafa; }
+        .members-input:focus { border-style: solid; border-color: #17a2b8; background: #fff; outline: none; }
+        
+        .floor-label { width: 155px; text-align: left; padding-left: 6px; font-size: 11px; color: #444; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         
         button { cursor: pointer; padding: 6px 10px; font-weight: bold; color: white; border: none; border-radius: 3px; }
         
@@ -99,19 +109,19 @@
         <div class="dashboard-grid">
             <div class="column">
                 <div class="admin-section" style="background:#fff3cd; border: 1px solid #ffeeba;">
-                    <div class="section-title">The Crypt Queue</div>
+                    <div class="section-title">The Crypt Queue (Breakout Waiting Room)</div>
                     <div class="queue-display" id="queue-box">Loading...</div>
                 </div>
 
                 <div class="admin-section">
-                    <div class="section-title">Auto-Call to Rooms</div>
+                    <div class="section-title">Auto-Call to Rooms (Breakout Room Guide)</div>
                     <div class="floor-call-grid" id="floor-call-box"></div>
                 </div>
             </div>
 
             <div class="column">
                 <div class="admin-section">
-                    <div class="section-title">Team Management & Outcomes</div>
+                    <div class="section-title">Team Management, Roster & Outcomes</div>
                     <div id="team-mgmt-box"></div>
                 </div>
             </div>
@@ -165,16 +175,16 @@
             }
         }
 
-        // Check if user is actively typing in a team name input
+        // Check if user is actively typing in any team name or member roster input
         function isTypingInInput() {
             const active = document.activeElement;
-            return active && active.tagName === 'INPUT' && active.id.startsWith('name-');
+            return active && active.tagName === 'INPUT' && (active.id.startsWith('name-') || active.id.startsWith('members-'));
         }
 
         // Fetch state from Supabase on load or poll
         async function fetchState(force = false) {
             if (!force && (isSyncPaused || isTypingInInput())) {
-                return; // Skip refresh while paused or actively typing a name
+                return; // Skip refresh while paused or actively typing
             }
             try {
                 const { data, error } = await dbClient
@@ -207,16 +217,20 @@
         function renderAdmin() {
             const teams = gameState.teams || [];
             
-            // 1. Queue Box
+            // 1. Queue Box (shows Team Name + individual player names for Teams Breakout Host)
             const cryptTeams = teams.filter(t => t.floor === 0).sort((a, b) => a.queueTime - b.queueTime);
             document.getElementById("queue-box").innerHTML = cryptTeams.length > 0 
-                ? cryptTeams.map((t, i) => `${i+1}. ${t.name} <span class="queue-target">(Tgt: Flr ${t.targetFloor})</span>`).join('<span class="queue-arrow">➔</span>') 
+                ? cryptTeams.map((t, i) => {
+                    const memberText = t.members ? `<span class="queue-members">👥 ${t.members}</span>` : '';
+                    return `<div class="queue-item">${i+1}. ${t.name} <span class="queue-target">(Tgt: Flr ${t.targetFloor})</span>${memberText}</div>`;
+                }).join('<span class="queue-arrow">➔</span>') 
                 : "<em>The Crypt is empty</em>";
 
-            // 2. Floor Callers
+            // 2. Floor Callers (shows current occupants & next team's individual members)
             let floorCallersHtml = "";
             for(let i = 1; i <= MAX_TOTAL_FLOORS; i++) {
-                let currentCount = teams.filter(t => t.floor === i).length;
+                let currentTeamsOnFloor = teams.filter(t => t.floor === i);
+                let currentCount = currentTeamsOnFloor.length;
                 let cap = floorCapacities[i-1];
                 let isFull = currentCount >= cap;
                 let nextTeam = teams.filter(t => t.floor === 0 && t.targetFloor === i).sort((a,b) => a.queueTime - b.queueTime)[0];
@@ -224,6 +238,16 @@
                 let statusColor = isFull ? "#dc3545" : "#28a745";
                 let statusText = `<span style="color:${statusColor}; font-weight:bold;">[ ${currentCount} / ${cap} ]</span>`;
                 
+                // Show who is currently inside this breakout room
+                let occupantInfo = currentTeamsOnFloor.length > 0
+                    ? `<div class="floor-occupants">In Room: ${currentTeamsOnFloor.map(t => `<strong>${t.name}</strong>${t.members ? ` (${t.members})` : ''}`).join(', ')}</div>`
+                    : '';
+
+                // Show who needs to be moved next into this room
+                let nextUpInfo = (!isFull && nextTeam && nextTeam.members)
+                    ? `<div class="next-up-roster">Next to move: 👥 ${nextTeam.members}</div>`
+                    : '';
+
                 let btnState = "", btnClass = "", btnText = "";
                 if (isFull) {
                     btnClass = "btn-disabled"; btnText = "Full"; btnState = "disabled";
@@ -235,35 +259,50 @@
 
                 floorCallersHtml += `
                     <div class="floor-call-row">
-                        <span class="floor-call-name">${statusText} ${floorNames[i]}</span>
+                        <div class="floor-call-info">
+                            <span class="floor-call-name">${statusText} ${floorNames[i]}</span>
+                            ${occupantInfo}
+                            ${nextUpInfo}
+                        </div>
                         <button class="${btnClass}" ${btnState} onclick="callNextToFloor(${i})">${btnText}</button>
                     </div>
                 `;
             }
             document.getElementById("floor-call-box").innerHTML = floorCallersHtml;
 
-            // 3. Team Management Box
+            // 3. Team Management Box (with individual member roster inputs)
             let manualTeamsHtml = "";
             teams.forEach(t => {
                 let currentFloorName = floorNames[t.floor] || `Floor ${t.floor}`;
+                let membersVal = (t.members || "").replace(/"/g, '&quot;');
                 if (t.floor === 0) {
                     manualTeamsHtml += `
                         <div class="admin-team">
-                            <button class="btn-tgt" onclick="changeTarget(${t.id}, -1)">- Tgt</button>
-                            <input type="text" id="name-${t.id}" value="${t.name}" onchange="updateName(${t.id}, this.value)">
-                            <span class="floor-label">Crypt ➔ Flr ${t.targetFloor}</span>
-                            <button class="btn-tgt" onclick="changeTarget(${t.id}, 1)">+ Tgt</button>
-                            <button class="btn-force" onclick="forceGo(${t.id})">Force</button>
+                            <div class="admin-team-top">
+                                <button class="btn-tgt" onclick="changeTarget(${t.id}, -1)">- Tgt</button>
+                                <input type="text" id="name-${t.id}" value="${t.name}" onchange="updateName(${t.id}, this.value)" title="Team Name">
+                                <span class="floor-label">Crypt ➔ Flr ${t.targetFloor}</span>
+                                <button class="btn-tgt" onclick="changeTarget(${t.id}, 1)">+ Tgt</button>
+                                <button class="btn-force" onclick="forceGo(${t.id})">Force</button>
+                            </div>
+                            <div class="admin-team-bottom">
+                                <input type="text" class="members-input" id="members-${t.id}" value="${membersVal}" placeholder="👥 Add individual MS Teams names (e.g., Sarah, Mike, Alex)..." onchange="updateMembers(${t.id}, this.value)">
+                            </div>
                         </div>
                     `;
                 } else {
                     manualTeamsHtml += `
                         <div class="admin-team">
-                            <button class="btn-lose-room" onclick="loseRoom(${t.id})">💀 Lose</button>
-                            <input type="text" id="name-${t.id}" value="${t.name}" onchange="updateName(${t.id}, this.value)">
-                            <span class="floor-label">${currentFloorName}</span>
-                            <button class="btn-win-room" onclick="winRoom(${t.id})">🎉 Win</button>
-                            <button class="btn-overall-win" onclick="declareWinner(${t.id})">🏆</button>
+                            <div class="admin-team-top">
+                                <button class="btn-lose-room" onclick="loseRoom(${t.id})">💀 Lose</button>
+                                <input type="text" id="name-${t.id}" value="${t.name}" onchange="updateName(${t.id}, this.value)" title="Team Name">
+                                <span class="floor-label">${currentFloorName}</span>
+                                <button class="btn-win-room" onclick="winRoom(${t.id})">🎉 Win</button>
+                                <button class="btn-overall-win" onclick="declareWinner(${t.id})">🏆</button>
+                            </div>
+                            <div class="admin-team-bottom">
+                                <input type="text" class="members-input" id="members-${t.id}" value="${membersVal}" placeholder="👥 Add individual MS Teams names (e.g., Sarah, Mike, Alex)..." onchange="updateMembers(${t.id}, this.value)">
+                            </div>
                         </div>
                     `;
                 }
@@ -348,15 +387,23 @@
             }
         }
 
+        function updateMembers(id, newMembers) {
+            const team = gameState.teams.find(t => t.id === id);
+            if (team) {
+                team.members = newMembers;
+                saveState();
+            }
+        }
+
         function addTeam() {
             const teams = gameState.teams;
             const newId = teams.length ? Math.max(...teams.map(t => t.id)) + 1 : 1;
-            teams.push({ id: newId, name: `Team ${newId}`, floor: 0, queueTime: Date.now(), targetFloor: 1 });
+            teams.push({ id: newId, name: `Team ${newId}`, members: "", floor: 0, queueTime: Date.now(), targetFloor: 1 });
             saveState();
         }
 
         function resetGame() {
-            if(confirm("Reset all teams to The Crypt, clear Fog of War, and reset Winner?")) {
+            if(confirm("Reset all teams to The Crypt, clear Fog of War, and reset Winner? (Team names and member rosters will be kept)")) {
                 gameState.teams.forEach((t, i) => {
                     t.floor = 0;
                     t.targetFloor = 1;
