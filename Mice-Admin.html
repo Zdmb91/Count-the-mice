@@ -55,18 +55,42 @@
         .admin-section { background: #e9ecef; padding: 12px; border-radius: 6px; }
         .section-title { font-weight: bold; font-size: 15px; border-bottom: 2px solid #ccc; padding-bottom: 5px; margin-bottom: 8px; color: #333; }
         
+        /* Crypt Queue Styling */
         .queue-display { font-size: 13px; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; color: #555; line-height: 1.5; }
-        .queue-item { display: inline-block; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; padding: 3px 6px; margin: 2px 0; }
+        .queue-item { display: inline-block; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; padding: 4px 8px; margin: 3px 0; vertical-align: middle; }
+        .queue-item-blocked { border: 2px solid #dc3545 !important; background: #fff5f5 !important; box-shadow: 0 0 5px rgba(220, 53, 69, 0.35); }
+        .blocked-badge { color: #dc3545; font-size: 10px; font-weight: bold; margin-left: 4px; }
         .queue-members { font-size: 11px; color: #0056b3; font-weight: normal; display: block; }
         .queue-arrow { color: #ff7518; margin: 0 6px; font-weight: bold; }
-        .queue-target { font-size: 11px; color: #888; font-weight: normal; }
+        .queue-target { font-size: 11px; color: #555; font-weight: bold; background: #e2e6ea; padding: 1px 5px; border-radius: 3px; margin-left: 3px; }
         
-        .floor-call-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
-        .floor-call-row { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; }
-        .floor-call-info { display: flex; flex-direction: column; gap: 2px; }
-        .floor-call-name { font-weight: bold; font-size: 12px; color: #444; }
-        .floor-occupants { font-size: 11px; color: #555; }
-        .next-up-roster { font-size: 11px; color: #1e7e34; font-weight: bold; }
+        /* Auto-Call Floor Cards */
+        .floor-call-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+        .floor-call-row { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 8px 10px; border-radius: 4px; border: 1px solid #ccc; gap: 10px; }
+        .floor-call-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .floor-call-name { font-weight: bold; font-size: 13px; color: #222; }
+        .floor-occupants { font-size: 11px; color: #555; background: #f1f3f5; padding: 3px 6px; border-radius: 3px; border-left: 3px solid #6c757d; }
+        
+        .floor-incoming-box {
+            margin-top: 2px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            background: #e8f5e9;
+            border-left: 3px solid #28a745;
+            color: #155724;
+        }
+        .floor-incoming-blocked {
+            background: #fff5f5;
+            border-left: 3px solid #dc3545;
+            color: #721c24;
+        }
+        .floor-also-waiting {
+            font-size: 10px;
+            color: #666;
+            margin-top: 2px;
+            font-weight: normal;
+        }
         
         @keyframes pulse-green {
             0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
@@ -74,17 +98,26 @@
             100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
         }
 
-        .btn-call-ready { background: #28a745; font-size: 11px; padding: 6px 10px; color: #fff; border: 1px solid #1e7e34; animation: pulse-green 2s infinite; font-weight: bold; border-radius: 3px; cursor: pointer; white-space: nowrap; }
-        .btn-disabled { background: #6c757d; font-size: 11px; padding: 5px 8px; cursor: not-allowed; opacity: 0.6; border: none; color: #fff; font-weight: bold; border-radius: 3px; white-space: nowrap; }
+        .btn-call-ready { background: #28a745; font-size: 11px; padding: 7px 10px; color: #fff; border: 1px solid #1e7e34; animation: pulse-green 2s infinite; font-weight: bold; border-radius: 3px; cursor: pointer; white-space: nowrap; }
+        .btn-disabled { background: #6c757d; font-size: 11px; padding: 6px 8px; cursor: not-allowed; opacity: 0.6; border: none; color: #fff; font-weight: bold; border-radius: 3px; white-space: nowrap; }
         
-        .admin-team { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+        /* Team Management Cards */
+        .admin-team { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ccc; transition: border 0.2s; }
+        .admin-team-blocked { border: 2px solid #dc3545 !important; background: #fff8f8 !important; }
         .admin-team-top { display: flex; align-items: center; justify-content: space-between; width: 100%; }
         .admin-team-top input { flex: 1; margin: 0 6px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .admin-team-bottom { display: flex; align-items: center; width: 100%; }
-        .members-input { flex: 1; padding: 4px 6px; border: 1px dashed #bbb; border-radius: 4px; font-size: 11px; color: #333; background: #fafafa; }
+        .admin-team-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; flex-wrap: wrap; }
+        .members-input { flex: 1; min-width: 180px; padding: 4px 6px; border: 1px dashed #bbb; border-radius: 4px; font-size: 11px; color: #333; background: #fafafa; }
         .members-input:focus { border-style: solid; border-color: #17a2b8; background: #fff; outline: none; }
         
-        .floor-label { width: 145px; text-align: left; padding-left: 6px; font-size: 11px; color: #444; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        /* Discreet Room Visit Tracker Pills */
+        .visit-history { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
+        .visit-label { font-size: 10px; color: #888; font-weight: bold; margin-right: 2px; }
+        .visit-pill { font-size: 10px; padding: 1px 5px; border-radius: 3px; background: #e9ecef; color: #495057; border: 1px solid #ced4da; font-weight: bold; }
+        .visit-pill-warn { background: #fff3cd; color: #856404; border-color: #ffeeba; }
+        .visit-pill-danger { background: #f8d7da; color: #721c24; border-color: #f5c6cb; font-weight: bold; }
+
+        .floor-label { width: 155px; text-align: left; padding-left: 6px; font-size: 11px; color: #444; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         
         button { cursor: pointer; padding: 6px 10px; font-weight: bold; color: white; border: none; border-radius: 3px; }
         
@@ -111,19 +144,19 @@
         <div class="dashboard-grid">
             <div class="column">
                 <div class="admin-section" style="background:#fff3cd; border: 1px solid #ffeeba;">
-                    <div class="section-title">The Crypt Queue (Breakout Waiting Room)</div>
+                    <div class="section-title">The Crypt Queue (Red Outline = Target Room Full)</div>
                     <div class="queue-display" id="queue-box">Loading...</div>
                 </div>
 
                 <div class="admin-section">
-                    <div class="section-title">Auto-Call to Rooms (Breakout Room Guide)</div>
+                    <div class="section-title">Auto-Call to Rooms & Incoming Lineup</div>
                     <div class="floor-call-grid" id="floor-call-box"></div>
                 </div>
             </div>
 
             <div class="column">
                 <div class="admin-section">
-                    <div class="section-title">Team Management, Roster & Outcomes</div>
+                    <div class="section-title">Team Management, Roster, Visits & Outcomes</div>
                     <div id="team-mgmt-box"></div>
                 </div>
             </div>
@@ -183,6 +216,41 @@
             return active && active.tagName === 'INPUT' && (active.id.startsWith('name-') || active.id.startsWith('members-'));
         }
 
+        // Helper: check if a specific floor is currently at max capacity
+        function isFloorAtCapacity(floorNum, teamsList) {
+            if (floorNum < 1 || floorNum > MAX_TOTAL_FLOORS) return false;
+            const currentCount = teamsList.filter(t => t.floor === floorNum).length;
+            return currentCount >= floorCapacities[floorNum - 1];
+        }
+
+        // Helper: record a room visit for a team
+        function recordVisit(team, floorNum) {
+            if (!team.visits) team.visits = {};
+            team.visits[floorNum] = (team.visits[floorNum] || 0) + 1;
+        }
+
+        // Helper: render discreet visit badges for a team
+        function renderVisitBadges(team) {
+            const visits = team.visits || {};
+            const visitedFloors = Object.keys(visits).filter(f => visits[f] > 0).sort((a, b) => Number(a) - Number(b));
+            if (visitedFloors.length === 0) {
+                return `<div class="visit-history"><span class="visit-label">Visits: None</span></div>`;
+            }
+            const pills = visitedFloors.map(f => {
+                const count = visits[f];
+                let pillClass = "visit-pill";
+                let prefix = "";
+                if (count >= 3) {
+                    pillClass += " visit-pill-danger";
+                    prefix = "⚠️ ";
+                } else if (count === 2) {
+                    pillClass += " visit-pill-warn";
+                }
+                return `<span class="${pillClass}" title="${floorNames[f]}: visited ${count} time(s)">${prefix}F${f}: ${count}</span>`;
+            }).join('');
+            return `<div class="visit-history"><span class="visit-label">Visits:</span>${pills}</div>`;
+        }
+
         // Fetch state from Supabase on load or poll
         async function fetchState(force = false) {
             if (!force && (isSyncPaused || isTypingInInput())) {
@@ -219,44 +287,70 @@
         function renderAdmin() {
             const teams = gameState.teams || [];
             
-            // 1. Queue Box (shows Team Name + individual player names for Teams Breakout Host)
+            // 1. Queue Box (highlights teams in red if their target floor is currently full)
             const cryptTeams = teams.filter(t => t.floor === 0).sort((a, b) => a.queueTime - b.queueTime);
             document.getElementById("queue-box").innerHTML = cryptTeams.length > 0 
                 ? cryptTeams.map((t, i) => {
+                    const targetFull = isFloorAtCapacity(t.targetFloor, teams);
+                    const itemClass = targetFull ? "queue-item queue-item-blocked" : "queue-item";
+                    const fullBadge = targetFull ? `<span class="blocked-badge">🔒 ROOM FULL</span>` : '';
                     const memberText = t.members ? `<span class="queue-members">👥 ${t.members}</span>` : '';
-                    return `<div class="queue-item">${i+1}. ${t.name} <span class="queue-target">(Tgt: Flr ${t.targetFloor})</span>${memberText}</div>`;
+                    return `<div class="${itemClass}">${i+1}. ${t.name} <span class="queue-target">➔ Flr ${t.targetFloor}</span>${fullBadge}${memberText}</div>`;
                 }).join('<span class="queue-arrow">➔</span>') 
                 : "<em>The Crypt is empty</em>";
 
-            // 2. Floor Callers (shows current occupants & next team's individual members)
+            // 2. Floor Callers (clearly shows current occupants AND ordered incoming queue for each floor)
             let floorCallersHtml = "";
             for(let i = 1; i <= MAX_TOTAL_FLOORS; i++) {
                 let currentTeamsOnFloor = teams.filter(t => t.floor === i);
                 let currentCount = currentTeamsOnFloor.length;
                 let cap = floorCapacities[i-1];
                 let isFull = currentCount >= cap;
-                let nextTeam = teams.filter(t => t.floor === 0 && t.targetFloor === i).sort((a,b) => a.queueTime - b.queueTime)[0];
+                
+                // All teams in the Crypt targeting this specific floor, ordered by queue time
+                let waitingForThisFloor = teams.filter(t => t.floor === 0 && t.targetFloor === i).sort((a,b) => a.queueTime - b.queueTime);
+                let nextTeam = waitingForThisFloor[0];
 
                 let statusColor = isFull ? "#dc3545" : "#28a745";
                 let statusText = `<span style="color:${statusColor}; font-weight:bold;">[ ${currentCount} / ${cap} ]</span>`;
                 
                 // Show who is currently inside this breakout room
                 let occupantInfo = currentTeamsOnFloor.length > 0
-                    ? `<div class="floor-occupants">In Room: ${currentTeamsOnFloor.map(t => `<strong>${t.name}</strong>${t.members ? ` (${t.members})` : ''}`).join(', ')}</div>`
+                    ? `<div class="floor-occupants">🟢 <strong>In Room:</strong> ${currentTeamsOnFloor.map(t => `<strong>${t.name}</strong>${t.members ? ` (${t.members})` : ''}`).join(', ')}</div>`
                     : '';
 
-                // Show who needs to be moved next into this room
-                let nextUpInfo = (!isFull && nextTeam && nextTeam.members)
-                    ? `<div class="next-up-roster">Next to move: 👥 ${nextTeam.members}</div>`
-                    : '';
+                // Clear display of who is headed to this floor next (even if room is full)
+                let incomingHtml = "";
+                if (waitingForThisFloor.length > 0) {
+                    const boxClass = isFull ? "floor-incoming-box floor-incoming-blocked" : "floor-incoming-box";
+                    const statusPrefix = isFull ? "🔒 <strong>WAITING (Room Full) — Next Up:</strong>" : "🔜 <strong>HEADED HERE NEXT:</strong>";
+                    const nextMembers = nextTeam.members ? ` <span style="font-weight:normal;">(👥 ${nextTeam.members})</span>` : '';
+                    
+                    let othersHtml = "";
+                    if (waitingForThisFloor.length > 1) {
+                        const othersList = waitingForThisFloor.slice(1).map((t, idx) => `${idx + 2}. ${t.name}`).join(', ');
+                        othersHtml = `<div class="floor-also-waiting">⏳ Also in line for Floor ${i}: ${othersList}</div>`;
+                    }
+                    incomingHtml = `
+                        <div class="${boxClass}">
+                            <div>${statusPrefix} <strong>${nextTeam.name}</strong>${nextMembers}</div>
+                            ${othersHtml}
+                        </div>
+                    `;
+                }
 
                 let btnState = "", btnClass = "", btnText = "";
                 if (isFull) {
-                    btnClass = "btn-disabled"; btnText = "Full"; btnState = "disabled";
+                    btnClass = "btn-disabled";
+                    btnText = waitingForThisFloor.length > 0 ? `Full (${waitingForThisFloor.length} Waiting)` : "Full";
+                    btnState = "disabled";
                 } else if (nextTeam) {
-                    btnClass = "btn-call-ready"; btnText = `Call: ${nextTeam.name}`;
+                    btnClass = "btn-call-ready";
+                    btnText = `Call: ${nextTeam.name}`;
                 } else {
-                    btnClass = "btn-disabled"; btnText = "Empty Q"; btnState = "disabled";
+                    btnClass = "btn-disabled";
+                    btnText = "No One Queued";
+                    btnState = "disabled";
                 }
 
                 floorCallersHtml += `
@@ -264,7 +358,7 @@
                         <div class="floor-call-info">
                             <span class="floor-call-name">${statusText} ${floorNames[i]}</span>
                             ${occupantInfo}
-                            ${nextUpInfo}
+                            ${incomingHtml}
                         </div>
                         <button class="${btnClass}" ${btnState} onclick="callNextToFloor(${i})">${btnText}</button>
                     </div>
@@ -272,24 +366,30 @@
             }
             document.getElementById("floor-call-box").innerHTML = floorCallersHtml;
 
-            // 3. Team Management Box (with individual member roster inputs & remove button)
+            // 3. Team Management Box (with red outline if blocked in Crypt + discreet room visit pills)
             let manualTeamsHtml = "";
             teams.forEach(t => {
                 let currentFloorName = floorNames[t.floor] || `Floor ${t.floor}`;
                 let membersVal = (t.members || "").replace(/"/g, '&quot;');
+                let visitBadgesHtml = renderVisitBadges(t);
+
                 if (t.floor === 0) {
+                    const isBlocked = isFloorAtCapacity(t.targetFloor, teams);
+                    const cardClass = isBlocked ? "admin-team admin-team-blocked" : "admin-team";
+                    const lockIcon = isBlocked ? "🔒 " : "";
                     manualTeamsHtml += `
-                        <div class="admin-team">
+                        <div class="${cardClass}">
                             <div class="admin-team-top">
                                 <button class="btn-tgt" onclick="changeTarget(${t.id}, -1)">- Tgt</button>
                                 <input type="text" id="name-${t.id}" value="${t.name}" onchange="updateName(${t.id}, this.value)" title="Team Name">
-                                <span class="floor-label">Crypt ➔ Flr ${t.targetFloor}</span>
+                                <span class="floor-label" style="${isBlocked ? 'color:#dc3545;' : ''}" title="Target Floor ${t.targetFloor}">${lockIcon}Crypt ➔ Flr ${t.targetFloor}${isBlocked ? ' (FULL)' : ''}</span>
                                 <button class="btn-tgt" onclick="changeTarget(${t.id}, 1)">+ Tgt</button>
                                 <button class="btn-force" onclick="forceGo(${t.id})">Force</button>
                                 <button class="btn-remove-team" onclick="removeTeam(${t.id})" title="Remove Team">🗑️</button>
                             </div>
                             <div class="admin-team-bottom">
-                                <input type="text" class="members-input" id="members-${t.id}" value="${membersVal}" placeholder="👥 Add individual MS Teams names (e.g., Sarah, Mike, Alex)..." onchange="updateMembers(${t.id}, this.value)">
+                                <input type="text" class="members-input" id="members-${t.id}" value="${membersVal}" placeholder="👥 Add individual MS Teams names..." onchange="updateMembers(${t.id}, this.value)">
+                                ${visitBadgesHtml}
                             </div>
                         </div>
                     `;
@@ -305,7 +405,8 @@
                                 <button class="btn-remove-team" onclick="removeTeam(${t.id})" title="Remove Team">🗑️</button>
                             </div>
                             <div class="admin-team-bottom">
-                                <input type="text" class="members-input" id="members-${t.id}" value="${membersVal}" placeholder="👥 Add individual MS Teams names (e.g., Sarah, Mike, Alex)..." onchange="updateMembers(${t.id}, this.value)">
+                                <input type="text" class="members-input" id="members-${t.id}" value="${membersVal}" placeholder="👥 Add individual MS Teams names..." onchange="updateMembers(${t.id}, this.value)">
+                                ${visitBadgesHtml}
                             </div>
                         </div>
                     `;
@@ -356,6 +457,7 @@
                 }
 
                 team.floor = team.targetFloor;
+                recordVisit(team, team.floor);
                 if (team.floor > gameState.unlockedFloor) {
                     gameState.unlockedFloor = team.floor;
                 }
@@ -368,6 +470,7 @@
             if (queuedTeams.length > 0) {
                 const nextTeam = queuedTeams[0];
                 nextTeam.floor = floorNum;
+                recordVisit(nextTeam, floorNum);
                 if (floorNum > gameState.unlockedFloor) {
                     gameState.unlockedFloor = floorNum;
                 }
@@ -402,7 +505,7 @@
         function addTeam() {
             const teams = gameState.teams;
             const newId = teams.length ? Math.max(...teams.map(t => t.id)) + 1 : 1;
-            teams.push({ id: newId, name: `Team ${newId}`, members: "", floor: 0, queueTime: Date.now(), targetFloor: 1 });
+            teams.push({ id: newId, name: `Team ${newId}`, members: "", visits: {}, floor: 0, queueTime: Date.now(), targetFloor: 1 });
             saveState();
         }
 
@@ -419,10 +522,11 @@
         }
 
         function resetGame() {
-            if(confirm("Reset all teams to The Crypt, clear Fog of War, and reset Winner? (Team names and member rosters will be kept)")) {
+            if(confirm("Reset all teams to The Crypt, clear visit history & Fog of War, and reset Winner? (Team names and member rosters will be kept)")) {
                 gameState.teams.forEach((t, i) => {
                     t.floor = 0;
                     t.targetFloor = 1;
+                    t.visits = {};
                     t.queueTime = Date.now() + i;
                 });
                 gameState.unlockedFloor = 0;
