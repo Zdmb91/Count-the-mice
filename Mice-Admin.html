@@ -11,7 +11,7 @@
         
         #admin-panel { 
             background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); 
-            width: 100%; max-width: 1400px; 
+            width: 100%; max-width: 1440px; 
             display: flex; flex-direction: column; height: 93vh; box-sizing: border-box;
         }
 
@@ -37,7 +37,7 @@
 
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 1.15fr;
+            grid-template-columns: 1fr 1.2fr;
             gap: 15px;
             flex: 1;
             overflow: hidden;
@@ -53,8 +53,14 @@
         }
         
         .admin-section { background: #e9ecef; padding: 12px; border-radius: 6px; }
-        .section-title { font-weight: bold; font-size: 15px; border-bottom: 2px solid #ccc; padding-bottom: 5px; margin-bottom: 8px; color: #333; }
+        .section-header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ccc; padding-bottom: 6px; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+        .section-title { font-weight: bold; font-size: 15px; color: #333; }
         
+        /* Floor Filter Bar for Room Hosts */
+        .floor-filter-bar { display: flex; gap: 3px; flex-wrap: wrap; }
+        .btn-filter { background: #dee2e6; color: #333; font-size: 11px; padding: 3px 7px; border-radius: 3px; border: 1px solid #ced4da; cursor: pointer; font-weight: bold; }
+        .btn-filter-active { background: #0056b3 !important; color: #fff !important; border-color: #004085 !important; }
+
         /* Crypt Queue Styling */
         .queue-display { font-size: 13px; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; color: #555; line-height: 1.5; }
         .queue-item { display: inline-block; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; padding: 4px 8px; margin: 3px 0; vertical-align: middle; }
@@ -101,13 +107,37 @@
         .btn-call-ready { background: #28a745; font-size: 11px; padding: 7px 10px; color: #fff; border: 1px solid #1e7e34; animation: pulse-green 2s infinite; font-weight: bold; border-radius: 3px; cursor: pointer; white-space: nowrap; }
         .btn-disabled { background: #6c757d; font-size: 11px; padding: 6px 8px; cursor: not-allowed; opacity: 0.6; border: none; color: #fff; font-weight: bold; border-radius: 3px; white-space: nowrap; }
         
-        /* Team Management Cards */
-        .admin-team { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ccc; transition: border 0.2s; }
+        /* Team Management Cards with Large Location Square */
+        .admin-team { display: flex; align-items: stretch; gap: 10px; margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 6px; border: 1px solid #ccc; transition: border 0.2s; }
         .admin-team-blocked { border: 2px solid #dc3545 !important; background: #fff8f8 !important; }
-        .admin-team-top { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-        .admin-team-top input { flex: 1; margin: 0 6px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        
+        /* Large Square Location Badge */
+        .location-square {
+            min-width: 92px;
+            max-width: 92px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 6px 4px;
+            color: #fff;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.15);
+            flex-shrink: 0;
+        }
+        .loc-square-room { background: #0056b3; border: 2px solid #003d82; }
+        .loc-square-crypt { background: #495057; border: 2px solid #343a40; }
+        .loc-square-blocked { background: #dc3545; border: 2px solid #a71d2a; }
+        
+        .loc-square-main { font-size: 15px; font-weight: 900; letter-spacing: 0.5px; line-height: 1.1; }
+        .loc-square-sub { font-size: 10px; font-weight: bold; opacity: 0.92; margin-top: 3px; line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        .admin-team-Main { display: flex; flex-direction: column; justify-content: space-between; gap: 6px; flex: 1; min-width: 0; }
+        .admin-team-top { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 4px; }
+        .admin-team-top input { flex: 1; min-width: 90px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; font-weight: bold; }
         .admin-team-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; flex-wrap: wrap; }
-        .members-input { flex: 1; min-width: 180px; padding: 4px 6px; border: 1px dashed #bbb; border-radius: 4px; font-size: 11px; color: #333; background: #fafafa; }
+        .members-input { flex: 1; min-width: 140px; padding: 4px 6px; border: 1px dashed #bbb; border-radius: 4px; font-size: 11px; color: #333; background: #fafafa; }
         .members-input:focus { border-style: solid; border-color: #17a2b8; background: #fff; outline: none; }
         
         /* Discreet Room Visit Tracker Pills */
@@ -116,17 +146,15 @@
         .visit-pill { font-size: 10px; padding: 1px 5px; border-radius: 3px; background: #e9ecef; color: #495057; border: 1px solid #ced4da; font-weight: bold; }
         .visit-pill-warn { background: #fff3cd; color: #856404; border-color: #ffeeba; }
         .visit-pill-danger { background: #f8d7da; color: #721c24; border-color: #f5c6cb; font-weight: bold; }
-
-        .floor-label { width: 155px; text-align: left; padding-left: 6px; font-size: 11px; color: #444; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         
         button { cursor: pointer; padding: 6px 10px; font-weight: bold; color: white; border: none; border-radius: 3px; }
         
-        .btn-win-room { background: #28a745; width: 65px; font-size: 11px; padding: 5px; }
-        .btn-lose-room { background: #dc3545; width: 65px; font-size: 11px; padding: 5px; }
-        .btn-tgt { background: #6c757d; width: 50px; font-size: 11px; padding: 5px; }
-        .btn-force { background: #17a2b8; margin-left: 4px; font-size: 11px; padding: 5px 8px;}
-        .btn-overall-win { background: #ffc107; color: #000; margin-left: 4px; border: 1px solid #d39e00; font-size: 12px; padding: 5px 6px;}
-        .btn-remove-team { background: #343a40; color: #fff; margin-left: 4px; font-size: 11px; padding: 5px 7px; opacity: 0.85; }
+        .btn-win-room { background: #28a745; width: 68px; font-size: 12px; padding: 6px; }
+        .btn-lose-room { background: #dc3545; width: 68px; font-size: 12px; padding: 6px; }
+        .btn-tgt { background: #6c757d; width: 48px; font-size: 11px; padding: 6px 4px; }
+        .btn-force { background: #17a2b8; font-size: 11px; padding: 6px 8px;}
+        .btn-overall-win { background: #ffc107; color: #000; border: 1px solid #d39e00; font-size: 12px; padding: 5px 7px;}
+        .btn-remove-team { background: #343a40; color: #fff; font-size: 11px; padding: 5px 7px; opacity: 0.85; }
         .btn-remove-team:hover { background: #c82333; opacity: 1; }
         
         .global-actions { display: flex; gap: 10px; margin-top: 10px; }
@@ -144,19 +172,26 @@
         <div class="dashboard-grid">
             <div class="column">
                 <div class="admin-section" style="background:#fff3cd; border: 1px solid #ffeeba;">
-                    <div class="section-title">The Crypt Queue (Red Outline = Target Room Full)</div>
+                    <div class="section-header-row">
+                        <div class="section-title">The Crypt Queue (Red Outline = Target Room Full)</div>
+                    </div>
                     <div class="queue-display" id="queue-box">Loading...</div>
                 </div>
 
                 <div class="admin-section">
-                    <div class="section-title">Auto-Call to Rooms & Incoming Lineup</div>
+                    <div class="section-header-row">
+                        <div class="section-title">Auto-Call to Rooms & Incoming Lineup</div>
+                    </div>
                     <div class="floor-call-grid" id="floor-call-box"></div>
                 </div>
             </div>
 
             <div class="column">
                 <div class="admin-section">
-                    <div class="section-title">Team Management, Roster, Visits & Outcomes</div>
+                    <div class="section-header-row">
+                        <div class="section-title">Team Management & Outcomes</div>
+                        <div class="floor-filter-bar" id="floor-filter-bar"></div>
+                    </div>
                     <div id="team-mgmt-box"></div>
                 </div>
             </div>
@@ -189,6 +224,18 @@
             "Floor 8: The Crypt Keeper's Truth"
         ];
 
+        const shortFloorTitles = [
+            "Waiting Room",
+            "Count the Mice",
+            "Phantom's Parlor",
+            "Hall of Mirrors",
+            "Accountability",
+            "Ghoul's Toll",
+            "Spot Differences",
+            "Spot Similarities",
+            "Crypt Keeper"
+        ];
+
         let gameState = {
             teams: [],
             unlockedFloor: 0,
@@ -196,6 +243,12 @@
         };
 
         let isSyncPaused = false;
+        let selectedFloorFilter = 'ALL'; // 'ALL', 'CRYPT', or floor number 1..8
+
+        function setFloorFilter(filterVal) {
+            selectedFloorFilter = filterVal;
+            renderAdmin();
+        }
 
         function toggleSync() {
             isSyncPaused = !isSyncPaused;
@@ -287,6 +340,16 @@
         function renderAdmin() {
             const teams = gameState.teams || [];
             
+            // 0. Render Floor Filter Bar for Room Hosts
+            let filterHtml = `
+                <button class="btn-filter ${selectedFloorFilter === 'ALL' ? 'btn-filter-active' : ''}" onclick="setFloorFilter('ALL')">All</button>
+                <button class="btn-filter ${selectedFloorFilter === 'CRYPT' ? 'btn-filter-active' : ''}" onclick="setFloorFilter('CRYPT')">Crypt</button>
+            `;
+            for (let i = 1; i <= MAX_TOTAL_FLOORS; i++) {
+                filterHtml += `<button class="btn-filter ${selectedFloorFilter === i ? 'btn-filter-active' : ''}" onclick="setFloorFilter(${i})" title="${floorNames[i]}">F${i}</button>`;
+            }
+            document.getElementById("floor-filter-bar").innerHTML = filterHtml;
+
             // 1. Queue Box (highlights teams in red if their target floor is currently full)
             const cryptTeams = teams.filter(t => t.floor === 0).sort((a, b) => a.queueTime - b.queueTime);
             document.getElementById("queue-box").innerHTML = cryptTeams.length > 0 
@@ -366,47 +429,70 @@
             }
             document.getElementById("floor-call-box").innerHTML = floorCallersHtml;
 
-            // 3. Team Management Box (with red outline if blocked in Crypt + discreet room visit pills)
+            // 3. Team Management Box (with LARGE Location Square + optional Floor Filter)
             let manualTeamsHtml = "";
-            teams.forEach(t => {
-                let currentFloorName = floorNames[t.floor] || `Floor ${t.floor}`;
+            const filteredTeams = teams.filter(t => {
+                if (selectedFloorFilter === 'ALL') return true;
+                if (selectedFloorFilter === 'CRYPT') return t.floor === 0;
+                return t.floor === selectedFloorFilter || (t.floor === 0 && t.targetFloor === selectedFloorFilter);
+            });
+
+            if (filteredTeams.length === 0) {
+                manualTeamsHtml = `<div style="padding:15px; text-align:center; color:#666; background:#fff; border-radius:4px;"><em>No teams currently in or queued for this floor filter.</em></div>`;
+            }
+
+            filteredTeams.forEach(t => {
                 let membersVal = (t.members || "").replace(/"/g, '&quot;');
                 let visitBadgesHtml = renderVisitBadges(t);
 
                 if (t.floor === 0) {
                     const isBlocked = isFloorAtCapacity(t.targetFloor, teams);
                     const cardClass = isBlocked ? "admin-team admin-team-blocked" : "admin-team";
-                    const lockIcon = isBlocked ? "🔒 " : "";
+                    const squareClass = isBlocked ? "location-square loc-square-blocked" : "location-square loc-square-crypt";
+                    const topLabel = isBlocked ? `🔒 FULL` : `CRYPT`;
+                    const subLabel = `Next ➔ Flr ${t.targetFloor}`;
+
                     manualTeamsHtml += `
                         <div class="${cardClass}">
-                            <div class="admin-team-top">
-                                <button class="btn-tgt" onclick="changeTarget(${t.id}, -1)">- Tgt</button>
-                                <input type="text" id="name-${t.id}" value="${t.name}" onchange="updateName(${t.id}, this.value)" title="Team Name">
-                                <span class="floor-label" style="${isBlocked ? 'color:#dc3545;' : ''}" title="Target Floor ${t.targetFloor}">${lockIcon}Crypt ➔ Flr ${t.targetFloor}${isBlocked ? ' (FULL)' : ''}</span>
-                                <button class="btn-tgt" onclick="changeTarget(${t.id}, 1)">+ Tgt</button>
-                                <button class="btn-force" onclick="forceGo(${t.id})">Force</button>
-                                <button class="btn-remove-team" onclick="removeTeam(${t.id})" title="Remove Team">🗑️</button>
+                            <div class="${squareClass}" title="Waiting in Crypt for ${floorNames[t.targetFloor]}">
+                                <div class="loc-square-main">${topLabel}</div>
+                                <div class="loc-square-sub">${subLabel}</div>
                             </div>
-                            <div class="admin-team-bottom">
-                                <input type="text" class="members-input" id="members-${t.id}" value="${membersVal}" placeholder="👥 Add individual MS Teams names..." onchange="updateMembers(${t.id}, this.value)">
-                                ${visitBadgesHtml}
+                            <div class="admin-team-Main">
+                                <div class="admin-team-top">
+                                    <button class="btn-tgt" onclick="changeTarget(${t.id}, -1)" title="Decrease Target Floor">- Tgt</button>
+                                    <input type="text" id="name-${t.id}" value="${t.name}" onchange="updateName(${t.id}, this.value)" title="Team Name">
+                                    <button class="btn-tgt" onclick="changeTarget(${t.id}, 1)" title="Increase Target Floor">+ Tgt</button>
+                                    <button class="btn-force" onclick="forceGo(${t.id})">Force ➔ F${t.targetFloor}</button>
+                                    <button class="btn-remove-team" onclick="removeTeam(${t.id})" title="Remove Team">🗑️</button>
+                                </div>
+                                <div class="admin-team-bottom">
+                                    <input type="text" class="members-input" id="members-${t.id}" value="${membersVal}" placeholder="👥 Add individual MS Teams names..." onchange="updateMembers(${t.id}, this.value)">
+                                    ${visitBadgesHtml}
+                                </div>
                             </div>
                         </div>
                     `;
                 } else {
+                    const shortRoom = shortFloorTitles[t.floor] || `Floor ${t.floor}`;
                     manualTeamsHtml += `
                         <div class="admin-team">
-                            <div class="admin-team-top">
-                                <button class="btn-lose-room" onclick="loseRoom(${t.id})">💀 Lose</button>
-                                <input type="text" id="name-${t.id}" value="${t.name}" onchange="updateName(${t.id}, this.value)" title="Team Name">
-                                <span class="floor-label">${currentFloorName}</span>
-                                <button class="btn-win-room" onclick="winRoom(${t.id})">🎉 Win</button>
-                                <button class="btn-overall-win" onclick="declareWinner(${t.id})" title="Declare Winner">🏆</button>
-                                <button class="btn-remove-team" onclick="removeTeam(${t.id})" title="Remove Team">🗑️</button>
+                            <div class="location-square loc-square-room" title="${floorNames[t.floor]}">
+                                <div class="loc-square-main">FLR ${t.floor}</div>
+                                <div class="loc-square-sub">${shortRoom}</div>
                             </div>
-                            <div class="admin-team-bottom">
-                                <input type="text" class="members-input" id="members-${t.id}" value="${membersVal}" placeholder="👥 Add individual MS Teams names..." onchange="updateMembers(${t.id}, this.value)">
-                                ${visitBadgesHtml}
+                            <div class="admin-team-Main">
+                                <div class="admin-team-top">
+                                    <button class="btn-lose-room" onclick="loseRoom(${t.id})">💀 Lose</button>
+                                    <input type="text" id="name-${t.id}" value="${t.name}" onchange="updateName(${t.id}, this.value)" title="Team Name">
+                                    <button class="btn-win-room" onclick="winRoom(${t.id})">🎉 Win</button>
+                                    <button class="btn-overall-win" onclick="declareWinner(${t.id})" title="Declare Winner">🏆</button>
+                                    <button class="btn-remove-team" onclick="removeTeam(${t.id})" title="Remove Team">🗑️</button>
+                                </div>
+                                <div class="admin-team-bottom">
+                                    <input type="text" class="members-input" id="members-${t.id}" value="${membersVal}" placeholder="👥 Add individual MS Teams names..." onchange="updateMembers(${t.id}, this.value)">
+                                    ${visitBadgesHtml}
+                                </div>
                             </div>
                         </div>
                     `;
