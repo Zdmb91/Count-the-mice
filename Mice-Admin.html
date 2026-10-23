@@ -140,13 +140,17 @@
         .members-input { flex: 1; min-width: 140px; padding: 4px 6px; border: 1px dashed #bbb; border-radius: 4px; font-size: 11px; color: #333; background: #fafafa; }
         .members-input:focus { border-style: solid; border-color: #17a2b8; background: #fff; outline: none; }
         
-        /* Discreet Room Visit Tracker Pills */
+        /* Discreet Room Visit Tracker & Timer */
+        .team-meta-row { display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 10px; gap: 6px; flex-wrap: wrap; }
         .visit-history { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
         .visit-label { font-size: 10px; color: #888; font-weight: bold; margin-right: 2px; }
         .visit-pill { font-size: 10px; padding: 1px 5px; border-radius: 3px; background: #e9ecef; color: #495057; border: 1px solid #ced4da; font-weight: bold; }
         .visit-pill-warn { background: #fff3cd; color: #856404; border-color: #ffeeba; }
         .visit-pill-danger { background: #f8d7da; color: #721c24; border-color: #f5c6cb; font-weight: bold; }
         
+        .room-timer { font-weight: bold; color: #333; background: #e9ecef; padding: 1px 6px; border-radius: 3px; border: 1px solid #ced4da; white-space: nowrap; }
+        .room-timer-long { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+
         button { cursor: pointer; padding: 6px 10px; font-weight: bold; color: white; border: none; border-radius: 3px; }
         
         .btn-win-room { background: #28a745; width: 68px; font-size: 12px; padding: 6px; }
@@ -281,14 +285,21 @@
             team.visits[floorNum] = (team.visits[floorNum] || 0) + 1;
         }
 
-        // Helper: render discreet visit badges for a team
-        function renderVisitBadges(team) {
+        // Helper: format elapsed time as MM:SS
+        function formatDuration(ms) {
+            if (!ms || isNaN(ms)) return "00:00";
+            const totalSecs = Math.floor(ms / 1000);
+            const mins = Math.floor(totalSecs / 60);
+            const secs = totalSecs % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        // Helper: render visit badges and live room timer
+        function renderTeamMeta(team) {
             const visits = team.visits || {};
             const visitedFloors = Object.keys(visits).filter(f => visits[f] > 0).sort((a, b) => Number(a) - Number(b));
-            if (visitedFloors.length === 0) {
-                return `<div class="visit-history"><span class="visit-label">Visits: None</span></div>`;
-            }
-            const pills = visitedFloors.map(f => {
+            
+            const pills = visitedFloors.length > 0 ? visitedFloors.map(f => {
                 const count = visits[f];
                 let pillClass = "visit-pill";
                 let prefix = "";
@@ -299,8 +310,22 @@
                     pillClass += " visit-pill-warn";
                 }
                 return `<span class="${pillClass}" title="${floorNames[f]}: visited ${count} time(s)">${prefix}F${f}: ${count}</span>`;
-            }).join('');
-            return `<div class="visit-history"><span class="visit-label">Visits:</span>${pills}</div>`;
+            }).join('') : `<span class="visit-label">Visits: None</span>`;
+
+            // Calculate live timer
+            const entered = team.enteredAt || Date.now();
+            const elapsedMs = Date.now() - entered;
+            const timeStr = formatDuration(elapsedMs);
+            const isLong = elapsedMs > 300 * 1000; // Highlight if > 5 minutes in same spot
+            const timerClass = isLong ? "room-timer room-timer-long" : "room-timer";
+            const locationType = team.floor === 0 ? "Crypt Time" : `Flr ${team.floor} Time`;
+
+            return `
+                <div class="team-meta-row">
+                    <div class="visit-history"><span class="visit-label">Visits:</span>${pills}</div>
+                    <div class="${timerClass}" title="Time spent in current location">⏱️ ${locationType}: <span id="timer-${team.id}">${timeStr}</span></div>
+                </div>
+            `;
         }
 
         // Fetch state from Supabase on load or poll
@@ -349,7 +374,7 @@
             }
             document.getElementById("floor-filter-bar").innerHTML = filterHtml;
 
-            // 1. Queue Box (highlights teams in red if their target floor is currently full)
+            // 1. Queue Box
             const cryptTeams = teams.filter(t => t.floor === 0).sort((a, b) => a.queueTime - b.queueTime);
             document.getElementById("queue-box").innerHTML = cryptTeams.length > 0 
                 ? cryptTeams.map((t, i) => {
@@ -361,7 +386,7 @@
                 }).join('<span class="queue-arrow">➔</span>') 
                 : "<em>The Crypt is empty</em>";
 
-            // 2. Floor Callers (clearly shows current occupants AND ordered incoming queue for each floor)
+            // 2. Floor Callers
             let floorCallersHtml = "";
             for(let i = 1; i <= MAX_TOTAL_FLOORS; i++) {
                 let currentTeamsOnFloor = teams.filter(t => t.floor === i);
@@ -369,19 +394,16 @@
                 let cap = floorCapacities[i-1];
                 let isFull = currentCount >= cap;
                 
-                // All teams in the Crypt targeting this specific floor, ordered by queue time
                 let waitingForThisFloor = teams.filter(t => t.floor === 0 && t.targetFloor === i).sort((a,b) => a.queueTime - b.queueTime);
                 let nextTeam = waitingForThisFloor[0];
 
                 let statusColor = isFull ? "#dc3545" : "#28a745";
                 let statusText = `<span style="color:${statusColor}; font-weight:bold;">[ ${currentCount} / ${cap} ]</span>`;
                 
-                // Show who is currently inside this breakout room
                 let occupantInfo = currentTeamsOnFloor.length > 0
                     ? `<div class="floor-occupants">🟢 <strong>In Room:</strong> ${currentTeamsOnFloor.map(t => `<strong>${t.name}</strong>${t.members ? ` (${t.members})` : ''}`).join(', ')}</div>`
                     : '';
 
-                // Clear display of who is headed to this floor next (even if room is full)
                 let incomingHtml = "";
                 if (waitingForThisFloor.length > 0) {
                     const boxClass = isFull ? "floor-incoming-box floor-incoming-blocked" : "floor-incoming-box";
@@ -428,7 +450,7 @@
             }
             document.getElementById("floor-call-box").innerHTML = floorCallersHtml;
 
-            // 3. Team Management Box (with LARGE Location Square + optional Floor Filter)
+            // 3. Team Management Box (with Large Location Square + Room Timers)
             let manualTeamsHtml = "";
             const filteredTeams = teams.filter(t => {
                 if (selectedFloorFilter === 'ALL') return true;
@@ -442,7 +464,7 @@
 
             filteredTeams.forEach(t => {
                 let membersVal = (t.members || "").replace(/"/g, '&quot;');
-                let visitBadgesHtml = renderVisitBadges(t);
+                let teamMetaHtml = renderTeamMeta(t);
 
                 if (t.floor === 0) {
                     const isBlocked = isFloorAtCapacity(t.targetFloor, teams);
@@ -466,8 +488,8 @@
                                 </div>
                                 <div class="admin-team-bottom">
                                     <input type="text" class="members-input" id="members-${t.id}" value="${membersVal}" placeholder="👥 Add individual MS Teams names..." onchange="updateMembers(${t.id}, this.value)">
-                                    ${visitBadgesHtml}
                                 </div>
+                                ${teamMetaHtml}
                             </div>
                         </div>
                     `;
@@ -489,8 +511,8 @@
                                 </div>
                                 <div class="admin-team-bottom">
                                     <input type="text" class="members-input" id="members-${t.id}" value="${membersVal}" placeholder="👥 Add individual MS Teams names..." onchange="updateMembers(${t.id}, this.value)">
-                                    ${visitBadgesHtml}
                                 </div>
+                                ${teamMetaHtml}
                             </div>
                         </div>
                     `;
@@ -504,6 +526,7 @@
             if (team) {
                 team.targetFloor = Math.max(1, team.floor - 1);
                 team.floor = 0;
+                team.enteredAt = Date.now(); // Reset timer on move
                 team.queueTime = Date.now();
                 saveState();
             }
@@ -514,6 +537,7 @@
             if (team) {
                 team.targetFloor = Math.min(MAX_TOTAL_FLOORS, team.floor + 1);
                 team.floor = 0;
+                team.enteredAt = Date.now(); // Reset timer on move
                 team.queueTime = Date.now();
                 saveState();
             }
@@ -534,6 +558,7 @@
             if (queuedTeams.length > 0) {
                 const nextTeam = queuedTeams[0];
                 nextTeam.floor = floorNum;
+                nextTeam.enteredAt = Date.now(); // Reset timer on move into room
                 recordVisit(nextTeam, floorNum);
                 if (floorNum > gameState.unlockedFloor) {
                     gameState.unlockedFloor = floorNum;
@@ -569,7 +594,7 @@
         function addTeam() {
             const teams = gameState.teams;
             const newId = teams.length ? Math.max(...teams.map(t => t.id)) + 1 : 1;
-            teams.push({ id: newId, name: `Team ${newId}`, members: "", visits: {}, floor: 0, queueTime: Date.now(), targetFloor: 1 });
+            teams.push({ id: newId, name: `Team ${newId}`, members: "", visits: {}, enteredAt: Date.now(), floor: 0, queueTime: Date.now(), targetFloor: 1 });
             saveState();
         }
 
@@ -586,11 +611,12 @@
         }
 
         function resetGame() {
-            if(confirm("Reset all teams to The Crypt, clear visit history & Fog of War, and reset Winner? (Team names and member rosters will be kept)")) {
+            if(confirm("Reset all teams to The Crypt, clear visit history & timers, and reset Winner? (Team names and member rosters will be kept)")) {
                 gameState.teams.forEach((t, i) => {
                     t.floor = 0;
                     t.targetFloor = 1;
                     t.visits = {};
+                    t.enteredAt = Date.now();
                     t.queueTime = Date.now() + i;
                 });
                 gameState.unlockedFloor = 0;
@@ -598,6 +624,18 @@
                 saveState();
             }
         }
+
+        // Live 1-second ticker to update timers smoothly without redrawing entire DOM
+        setInterval(() => {
+            if (!gameState || !gameState.teams) return;
+            gameState.teams.forEach(t => {
+                const timerSpan = document.getElementById(`timer-${t.id}`);
+                if (timerSpan && t.enteredAt) {
+                    const elapsedMs = Date.now() - t.enteredAt;
+                    timerSpan.innerText = formatDuration(elapsedMs);
+                }
+            });
+        }, 1000);
 
         // Realtime listener for cross-device sync
         dbClient
