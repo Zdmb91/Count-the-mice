@@ -20,6 +20,13 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
 
         h2 { margin: 0; font-size: 20px; color: #222; }
@@ -33,6 +40,99 @@
         }
         .btn-sync-paused {
             background: #dc3545 !important;
+        }
+        .btn-floor-setup {
+            background: #6f42c1;
+            padding: 6px 14px;
+            font-size: 13px;
+            border-radius: 4px;
+        }
+
+        /* Collapsible Floor Setup Drawer */
+        #floor-setup-drawer {
+            display: none;
+            background: #f8f9fa;
+            border: 2px solid #6f42c1;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+            max-height: 42vh;
+            overflow-y: auto;
+        }
+        .setup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .setup-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .setup-floor-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #fff;
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+        }
+        .setup-flr-badge {
+            background: #6f42c1;
+            color: #fff;
+            font-weight: bold;
+            font-size: 11px;
+            padding: 4px 7px;
+            border-radius: 3px;
+            min-width: 44px;
+            text-align: center;
+        }
+        .setup-name-input {
+            flex: 1;
+            padding: 5px 6px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .setup-cap-input {
+            width: 48px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 12px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .btn-mini {
+            padding: 4px 7px;
+            font-size: 11px;
+            background: #6c757d;
+        }
+        .btn-mini-del {
+            padding: 4px 7px;
+            font-size: 11px;
+            background: #dc3545;
+        }
+        .add-floor-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #e9ecef;
+            padding: 8px 10px;
+            border-radius: 4px;
+            flex-wrap: wrap;
+        }
+        .add-floor-bar input, .add-floor-bar select {
+            padding: 5px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 12px;
         }
 
         .dashboard-grid {
@@ -168,7 +268,31 @@
     <div id="admin-panel">
         <div class="header-bar">
             <h2>Admin Controls Dashboard (Cloud Synced)</h2>
-            <button id="sync-toggle-btn" class="btn-sync-toggle" onclick="toggleSync()">⏸️ Pause Auto-Sync</button>
+            <div class="header-actions">
+                <button class="btn-floor-setup" onclick="toggleFloorSetup()">⚙️ Setup Floors / Rooms</button>
+                <button id="sync-toggle-btn" class="btn-sync-toggle" onclick="toggleSync()">⏸️ Pause Auto-Sync</button>
+            </div>
+        </div>
+
+        <!-- Collapsible Pre-Game Floor & Capacity Manager -->
+        <div id="floor-setup-drawer">
+            <div class="setup-header">
+                <div>
+                    <strong style="color:#6f42c1; font-size:14px;">🏢 Floor & Room Configuration (Synced with Viewer)</strong>
+                    <span style="font-size:11px; color:#666; margin-left:8px;">Add, remove, rename, or reorder floors. Floor numbers adjust automatically.</span>
+                </div>
+                <button class="btn-mini" onclick="toggleFloorSetup()">✖ Close</button>
+            </div>
+            <div class="setup-grid" id="setup-floors-list"></div>
+            <div class="add-floor-bar">
+                <strong style="font-size:12px; color:#333;">+ Add New Floor:</strong>
+                <input type="text" id="new-floor-name" placeholder="Room Name (e.g., The Witch's Kitchen)" style="flex:1; min-width:180px;">
+                <label style="font-size:12px; font-weight:bold; color:#444;">Capacity:</label>
+                <input type="number" id="new-floor-cap" value="1" min="0" max="50" style="width:55px;">
+                <label style="font-size:12px; font-weight:bold; color:#444;">Insert Position:</label>
+                <select id="new-floor-pos"></select>
+                <button style="background:#6f42c1; padding:6px 12px; font-size:12px;" onclick="addFloor()">+ Create Floor</button>
+            </div>
         </div>
         
         <div class="dashboard-grid">
@@ -211,41 +335,62 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFsY2hsaWtndG1rcGdodWp2Z2NuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0Mjc0MDcsImV4cCI6MjEwODAwMzQwN30.PUrYlqwiu1NflpUdz2OCj5_zen1MM3aH5vi5PGrp_E4';
         const dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const MAX_TOTAL_FLOORS = 8;
-        const floorCapacities = [10, 10, 1, 2, 1, 1, 1, 2]; 
-        
-        const floorNames = [
-            "The Crypt (Waiting Room)",
-            "Floor 1: Count the Mice",
-            "Floor 2: The Phantom's Parlor",
-            "Floor 3: The Hall of Mirrors",
-            "Floor 4: Accountability",
-            "Floor 5: Ghoul's Toll",
-            "Floor 6: Spot the Differences",
-            "Floor 7: Spot the Similarities",
-            "Floor 8: The Crypt Keeper's Truth"
-        ];
-
-        const shortFloorTitles = [
-            "Waiting Room",
-            "Count the Mice",
-            "Phantom's Parlor",
-            "Hall of Mirrors",
-            "Accountability",
-            "Ghoul's Toll",
-            "Spot Differences",
-            "Spot Similarities",
-            "Crypt Keeper"
+        const DEFAULT_FLOORS = [
+            { name: "Count the Mice", capacity: 10 },
+            { name: "The Phantom's Parlor", capacity: 10 },
+            { name: "The Hall of Mirrors", capacity: 1 },
+            { name: "Accountability", capacity: 2 },
+            { name: "Ghoul's Toll", capacity: 1 },
+            { name: "Spot the Differences", capacity: 1 },
+            { name: "Spot the Similarities", capacity: 1 },
+            { name: "The Crypt Keeper's Truth", capacity: 2 }
         ];
 
         let gameState = {
             teams: [],
+            floors: JSON.parse(JSON.stringify(DEFAULT_FLOORS)),
             unlockedFloor: 0,
             winnerName: null
         };
 
         let isSyncPaused = false;
-        let selectedFloorFilter = 'ALL'; // 'ALL', 'CRYPT', or floor number 1..8
+        let selectedFloorFilter = 'ALL'; // 'ALL', 'CRYPT', or floor number 1..N
+
+        // Helper functions to read dynamic floors from gameState
+        function getFloors() {
+            if (!gameState.floors || !Array.isArray(gameState.floors) || gameState.floors.length === 0) {
+                gameState.floors = JSON.parse(JSON.stringify(DEFAULT_FLOORS));
+            }
+            return gameState.floors;
+        }
+
+        function getMaxFloors() {
+            return getFloors().length;
+        }
+
+        function getFullFloorName(floorNum) {
+            if (floorNum === 0) return "The Crypt (Waiting Room)";
+            const fl = getFloors()[floorNum - 1];
+            return fl ? `Floor ${floorNum}: ${fl.name}` : `Floor ${floorNum}`;
+        }
+
+        function getShortFloorName(floorNum) {
+            if (floorNum === 0) return "Waiting Room";
+            const fl = getFloors()[floorNum - 1];
+            return fl ? fl.name : `Floor ${floorNum}`;
+        }
+
+        function getFloorCapacity(floorNum) {
+            if (floorNum < 1 || floorNum > getMaxFloors()) return 0;
+            const cap = Number(getFloors()[floorNum - 1].capacity);
+            return isNaN(cap) ? 1 : cap;
+        }
+
+        function toggleFloorSetup() {
+            const drawer = document.getElementById('floor-setup-drawer');
+            drawer.style.display = (drawer.style.display === 'block') ? 'none' : 'block';
+            renderAdmin();
+        }
 
         function setFloorFilter(filterVal) {
             selectedFloorFilter = filterVal;
@@ -261,21 +406,29 @@
             } else {
                 btn.innerText = "⏸️ Pause Auto-Sync";
                 btn.classList.remove('btn-sync-paused');
-                fetchState(true); // Immediate sync upon resuming
+                fetchState(true);
             }
         }
 
-        // Check if user is actively typing in any team name or member roster input
+        // Check if user is actively typing in any input field (names, members, or floor setup)
         function isTypingInInput() {
             const active = document.activeElement;
-            return active && active.tagName === 'INPUT' && (active.id.startsWith('name-') || active.id.startsWith('members-'));
+            if (!active) return false;
+            if (active.tagName === 'INPUT' || active.tagName === 'SELECT') {
+                return active.id.startsWith('name-') ||
+                       active.id.startsWith('members-') ||
+                       active.id.startsWith('flr-name-') ||
+                       active.id.startsWith('flr-cap-') ||
+                       active.id.startsWith('new-floor-');
+            }
+            return false;
         }
 
         // Helper: check if a specific floor is currently at max capacity
         function isFloorAtCapacity(floorNum, teamsList) {
-            if (floorNum < 1 || floorNum > MAX_TOTAL_FLOORS) return false;
+            if (floorNum < 1 || floorNum > getMaxFloors()) return false;
             const currentCount = teamsList.filter(t => t.floor === floorNum).length;
-            return currentCount >= floorCapacities[floorNum - 1];
+            return currentCount >= getFloorCapacity(floorNum);
         }
 
         // Helper: record a room visit for a team
@@ -300,8 +453,7 @@
             
             let bg, color, border;
             if (ratio <= 0.5) {
-                // Gray to Yellow (0% to 50% of 5 mins)
-                const subRatio = ratio * 2; // 0 to 1
+                const subRatio = ratio * 2;
                 const r = Math.round(233 + (255 - 233) * subRatio);
                 const g = Math.round(236 + (235 - 236) * subRatio);
                 const b = Math.round(239 + (59 - 239) * subRatio);
@@ -309,8 +461,7 @@
                 color = subRatio > 0.4 ? '#533f00' : '#333';
                 border = subRatio > 0.4 ? '#ffeeba' : '#ced4da';
             } else {
-                // Yellow to Red (50% to 100% of 5 mins)
-                const subRatio = (ratio - 0.5) * 2; // 0 to 1
+                const subRatio = (ratio - 0.5) * 2;
                 const r = Math.round(255 + (220 - 255) * subRatio);
                 const g = Math.round(235 + (53 - 235) * subRatio);
                 const b = Math.round(59 + (69 - 59) * subRatio);
@@ -341,10 +492,9 @@
                 } else if (count === 2) {
                     pillClass += " visit-pill-warn";
                 }
-                return `<span class="${pillClass}" title="${floorNames[f]}: visited ${count} time(s)">${prefix}F${f}: ${count}</span>`;
+                return `<span class="${pillClass}" title="${getFullFloorName(Number(f))}: visited ${count} time(s)">${prefix}F${f}: ${count}</span>`;
             }).join('') : `<span class="visit-label">Visits: None</span>`;
 
-            // Calculate live timer
             const entered = team.enteredAt || Date.now();
             const elapsedMs = Date.now() - entered;
             const timeStr = formatDuration(elapsedMs);
@@ -362,7 +512,7 @@
         // Fetch state from Supabase on load or poll
         async function fetchState(force = false) {
             if (!force && (isSyncPaused || isTypingInInput())) {
-                return; // Skip refresh while paused or actively typing
+                return;
             }
             try {
                 const { data, error } = await dbClient
@@ -374,6 +524,10 @@
                 if (data && data.data) {
                     if (!force && (isSyncPaused || isTypingInInput())) return;
                     gameState = data.data;
+                    // Ensure floors array exists in legacy database rows
+                    if (!gameState.floors || !Array.isArray(gameState.floors) || gameState.floors.length === 0) {
+                        gameState.floors = JSON.parse(JSON.stringify(DEFAULT_FLOORS));
+                    }
                     renderAdmin();
                 } else {
                     console.error("No data returned from Supabase:", error);
@@ -385,23 +539,188 @@
 
         // Push updated state to Supabase
         async function saveState() {
-            renderAdmin(); // Immediate local render for responsiveness
+            renderAdmin();
             await dbClient
                 .from('game_state')
                 .update({ data: gameState })
                 .eq('id', 1);
         }
 
+        // --- Floor Management Functions ---
+        function updateFloorConfig(index, field, value) {
+            const floors = getFloors();
+            if (!floors[index]) return;
+            if (field === 'name') {
+                floors[index].name = value.trim() || `Room ${index + 1}`;
+            } else if (field === 'capacity') {
+                const cap = parseInt(value, 10);
+                floors[index].capacity = isNaN(cap) ? 1 : Math.max(0, cap);
+            }
+            saveState();
+        }
+
+        function addFloor() {
+            const nameInput = document.getElementById('new-floor-name');
+            const capInput = document.getElementById('new-floor-cap');
+            const posSelect = document.getElementById('new-floor-pos');
+
+            const name = nameInput.value.trim();
+            if (!name) {
+                alert("Please enter a name for the new room.");
+                return;
+            }
+            const capacity = Math.max(0, parseInt(capInput.value, 10) || 1);
+            const floors = getFloors();
+            const insertIdx = parseInt(posSelect.value, 10); // 0-based index (Floor number = insertIdx + 1)
+            const insertedFloorNum = insertIdx + 1;
+
+            floors.splice(insertIdx, 0, { name, capacity });
+
+            // Shift teams & visit keys at or above the inserted floor number so everyone stays aligned
+            (gameState.teams || []).forEach(t => {
+                if (t.floor >= insertedFloorNum) t.floor += 1;
+                if (t.targetFloor >= insertedFloorNum) t.targetFloor += 1;
+                if (t.visits) {
+                    const updatedVisits = {};
+                    Object.keys(t.visits).forEach(k => {
+                        const flNum = Number(k);
+                        updatedVisits[flNum >= insertedFloorNum ? flNum + 1 : flNum] = t.visits[k];
+                    });
+                    t.visits = updatedVisits;
+                }
+            });
+
+            if (gameState.unlockedFloor >= insertedFloorNum) {
+                gameState.unlockedFloor += 1;
+            }
+
+            nameInput.value = '';
+            saveState();
+        }
+
+        function moveFloor(index, direction) {
+            const floors = getFloors();
+            const targetIdx = index + direction;
+            if (targetIdx < 0 || targetIdx >= floors.length) return;
+
+            const floorA = index + 1;
+            const floorB = targetIdx + 1;
+
+            // Swap floor definitions
+            const temp = floors[index];
+            floors[index] = floors[targetIdx];
+            floors[targetIdx] = temp;
+
+            // Swap team floor assignments & visit counts so teams stay with their room
+            (gameState.teams || []).forEach(t => {
+                if (t.floor === floorA) t.floor = floorB;
+                else if (t.floor === floorB) t.floor = floorA;
+
+                if (t.targetFloor === floorA) t.targetFloor = floorB;
+                else if (t.targetFloor === floorB) t.targetFloor = floorA;
+
+                if (t.visits) {
+                    const vA = t.visits[floorA];
+                    const vB = t.visits[floorB];
+                    if (vA !== undefined) t.visits[floorB] = vA; else delete t.visits[floorB];
+                    if (vB !== undefined) t.visits[floorA] = vB; else delete t.visits[floorA];
+                }
+            });
+
+            saveState();
+        }
+
+        function removeFloor(index) {
+            const floors = getFloors();
+            if (floors.length <= 1) {
+                alert("You must have at least 1 floor in the game.");
+                return;
+            }
+            const floorNum = index + 1;
+            const flName = floors[index].name;
+            if (!confirm(`Remove "Floor ${floorNum}: ${flName}"?\n\nAll higher floors will automatically re-number down by 1.`)) {
+                return;
+            }
+
+            floors.splice(index, 1);
+            const newMax = floors.length;
+
+            (gameState.teams || []).forEach(t => {
+                if (t.floor === floorNum) {
+                    t.floor = 0; // Return to Crypt if their room was deleted
+                    t.enteredAt = Date.now();
+                } else if (t.floor > floorNum) {
+                    t.floor -= 1;
+                }
+
+                if (t.targetFloor > floorNum) {
+                    t.targetFloor -= 1;
+                }
+                t.targetFloor = Math.min(Math.max(1, t.targetFloor), newMax);
+
+                if (t.visits) {
+                    const updatedVisits = {};
+                    Object.keys(t.visits).forEach(k => {
+                        const fn = Number(k);
+                        if (fn < floorNum) updatedVisits[fn] = t.visits[k];
+                        else if (fn > floorNum) updatedVisits[fn - 1] = t.visits[k];
+                    });
+                    t.visits = updatedVisits;
+                }
+            });
+
+            if (gameState.unlockedFloor >= floorNum) {
+                gameState.unlockedFloor = Math.max(0, gameState.unlockedFloor - 1);
+            }
+            if (typeof selectedFloorFilter === 'number' && selectedFloorFilter > newMax) {
+                selectedFloorFilter = 'ALL';
+            }
+
+            saveState();
+        }
+
         function renderAdmin() {
             const teams = gameState.teams || [];
+            const floors = getFloors();
+            const maxFloors = floors.length;
+
+            // Render Floor Setup Drawer List & Position Dropdown
+            const setupListEl = document.getElementById('setup-floors-list');
+            if (setupListEl) {
+                setupListEl.innerHTML = floors.map((fl, idx) => {
+                    const safeName = (fl.name || '').replace(/"/g, '&quot;');
+                    return `
+                        <div class="setup-floor-row">
+                            <span class="setup-flr-badge">Flr ${idx + 1}</span>
+                            <input type="text" class="setup-name-input" id="flr-name-${idx}" value="${safeName}" onchange="updateFloorConfig(${idx}, 'name', this.value)" title="Room Name">
+                            <span style="font-size:11px; color:#555; font-weight:bold;">Cap:</span>
+                            <input type="number" class="setup-cap-input" id="flr-cap-${idx}" value="${fl.capacity}" min="0" max="50" onchange="updateFloorConfig(${idx}, 'capacity', this.value)" title="Room Capacity">
+                            <button class="btn-mini" onclick="moveFloor(${idx}, -1)" ${idx === 0 ? 'disabled style="opacity:0.4;"' : ''} title="Move Down a Floor">⬇️</button>
+                            <button class="btn-mini" onclick="moveFloor(${idx}, 1)" ${idx === floors.length - 1 ? 'disabled style="opacity:0.4;"' : ''} title="Move Up a Floor">⬆️</button>
+                            <button class="btn-mini-del" onclick="removeFloor(${idx})" title="Delete Floor">🗑️</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            const posSelectEl = document.getElementById('new-floor-pos');
+            if (posSelectEl && document.activeElement !== posSelectEl) {
+                let posOptions = '';
+                for (let i = 0; i <= maxFloors; i++) {
+                    const isLast = (i === maxFloors);
+                    const label = isLast ? `Floor ${i + 1} (Top / End)` : `Floor ${i + 1} (Before ${floors[i].name})`;
+                    posOptions += `<option value="${i}" ${isLast ? 'selected' : ''}>${label}</option>`;
+                }
+                posSelectEl.innerHTML = posOptions;
+            }
             
             // 0. Render Floor Filter Bar for Room Hosts
             let filterHtml = `
                 <button class="btn-filter ${selectedFloorFilter === 'ALL' ? 'btn-filter-active' : ''}" onclick="setFloorFilter('ALL')">All</button>
                 <button class="btn-filter ${selectedFloorFilter === 'CRYPT' ? 'btn-filter-active' : ''}" onclick="setFloorFilter('CRYPT')">Crypt</button>
             `;
-            for (let i = 1; i <= MAX_TOTAL_FLOORS; i++) {
-                filterHtml += `<button class="btn-filter ${selectedFloorFilter === i ? 'btn-filter-active' : ''}" onclick="setFloorFilter(${i})" title="${floorNames[i]}">F${i}</button>`;
+            for (let i = 1; i <= maxFloors; i++) {
+                filterHtml += `<button class="btn-filter ${selectedFloorFilter === i ? 'btn-filter-active' : ''}" onclick="setFloorFilter(${i})" title="${getFullFloorName(i)}">F${i}</button>`;
             }
             document.getElementById("floor-filter-bar").innerHTML = filterHtml;
 
@@ -419,10 +738,10 @@
 
             // 2. Floor Callers
             let floorCallersHtml = "";
-            for(let i = 1; i <= MAX_TOTAL_FLOORS; i++) {
+            for(let i = 1; i <= maxFloors; i++) {
                 let currentTeamsOnFloor = teams.filter(t => t.floor === i);
                 let currentCount = currentTeamsOnFloor.length;
-                let cap = floorCapacities[i-1];
+                let cap = getFloorCapacity(i);
                 let isFull = currentCount >= cap;
                 
                 let waitingForThisFloor = teams.filter(t => t.floor === 0 && t.targetFloor === i).sort((a,b) => a.queueTime - b.queueTime);
@@ -471,7 +790,7 @@
                 floorCallersHtml += `
                     <div class="floor-call-row">
                         <div class="floor-call-info">
-                            <span class="floor-call-name">${statusText} ${floorNames[i]}</span>
+                            <span class="floor-call-name">${statusText} ${getFullFloorName(i)}</span>
                             ${occupantInfo}
                             ${incomingHtml}
                         </div>
@@ -506,7 +825,7 @@
 
                     manualTeamsHtml += `
                         <div class="${cardClass}">
-                            <div class="${squareClass}" title="Waiting in Crypt for ${floorNames[t.targetFloor]}">
+                            <div class="${squareClass}" title="Waiting in Crypt for ${getFullFloorName(t.targetFloor)}">
                                 <div class="loc-square-main">${topLabel}</div>
                                 <div class="loc-square-sub">${subLabel}</div>
                             </div>
@@ -525,10 +844,10 @@
                         </div>
                     `;
                 } else {
-                    const shortRoom = shortFloorTitles[t.floor] || `Floor ${t.floor}`;
+                    const shortRoom = getShortFloorName(t.floor);
                     manualTeamsHtml += `
                         <div class="admin-team">
-                            <div class="location-square loc-square-room" title="${floorNames[t.floor]}">
+                            <div class="location-square loc-square-room" title="${getFullFloorName(t.floor)}">
                                 <div class="loc-square-main">FLR ${t.floor}</div>
                                 <div class="loc-square-sub">${shortRoom}</div>
                             </div>
@@ -557,7 +876,7 @@
             if (team) {
                 team.targetFloor = Math.max(1, team.floor - 1);
                 team.floor = 0;
-                team.enteredAt = Date.now(); // Reset timer on move
+                team.enteredAt = Date.now();
                 team.queueTime = Date.now();
                 saveState();
             }
@@ -566,9 +885,9 @@
         function loseRoom(id) {
             const team = gameState.teams.find(t => t.id === id);
             if (team) {
-                team.targetFloor = Math.min(MAX_TOTAL_FLOORS, team.floor + 1);
+                team.targetFloor = Math.min(getMaxFloors(), team.floor + 1);
                 team.floor = 0;
-                team.enteredAt = Date.now(); // Reset timer on move
+                team.enteredAt = Date.now();
                 team.queueTime = Date.now();
                 saveState();
             }
@@ -577,9 +896,10 @@
         function changeTarget(id, direction) {
             const team = gameState.teams.find(t => t.id === id);
             if (team) {
+                const maxFloors = getMaxFloors();
                 team.targetFloor += direction;
                 if (team.targetFloor < 1) team.targetFloor = 1;
-                if (team.targetFloor > MAX_TOTAL_FLOORS) team.targetFloor = MAX_TOTAL_FLOORS;
+                if (team.targetFloor > maxFloors) team.targetFloor = maxFloors;
                 saveState();
             }
         }
@@ -589,7 +909,7 @@
             if (queuedTeams.length > 0) {
                 const nextTeam = queuedTeams[0];
                 nextTeam.floor = floorNum;
-                nextTeam.enteredAt = Date.now(); // Reset timer on move into room
+                nextTeam.enteredAt = Date.now();
                 recordVisit(nextTeam, floorNum);
                 if (floorNum > gameState.unlockedFloor) {
                     gameState.unlockedFloor = floorNum;
@@ -642,7 +962,7 @@
         }
 
         function resetGame() {
-            if(confirm("Reset all teams to The Crypt, clear visit history & timers, and reset Winner? (Team names and member rosters will be kept)")) {
+            if(confirm("Reset all teams to The Crypt, clear visit history & timers, and reset Winner? (Team names, rosters, and custom floors will be kept)")) {
                 gameState.teams.forEach((t, i) => {
                     t.floor = 0;
                     t.targetFloor = 1;
@@ -656,7 +976,7 @@
             }
         }
 
-        // Live 1-second ticker to update timer text and dynamic color gradient smoothly without full DOM rebuild
+        // Live 1-second ticker to update timer text and dynamic color gradient smoothly
         setInterval(() => {
             if (!gameState || !gameState.teams) return;
             gameState.teams.forEach(t => {
