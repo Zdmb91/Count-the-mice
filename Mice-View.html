@@ -222,27 +222,25 @@
     </div>
 
     <script>
-        // Supabase Initialization (using dbClient to avoid namespace collisions)
+        // Supabase Initialization
         const SUPABASE_URL = 'https://alchlikgtmkpghujvgcn.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFsY2hsaWtndG1rcGdodWp2Z2NuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0Mjc0MDcsImV4cCI6MjEwODAwMzQwN30.PUrYlqwiu1NflpUdz2OCj5_zen1MM3aH5vi5PGrp_E4';
         const dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const MAX_TOTAL_FLOORS = 8;
-        
-        const floorNames = [
-            "The Crypt",
-            "Count the Mice",
-            "The Phantom's Parlor",
-            "The Hall of Mirrors",
-            "Accountability",
-            "Ghoul's Toll",
-            "Spot the Differences",
-            "Spot the Similarities",
-            "The Crypt Keeper's Truth"
+        const DEFAULT_FLOORS = [
+            { name: "Count the Mice", capacity: 10 },
+            { name: "The Phantom's Parlor", capacity: 10 },
+            { name: "The Hall of Mirrors", capacity: 1 },
+            { name: "Accountability", capacity: 2 },
+            { name: "Ghoul's Toll", capacity: 1 },
+            { name: "Spot the Differences", capacity: 1 },
+            { name: "Spot the Similarities", capacity: 1 },
+            { name: "The Crypt Keeper's Truth", capacity: 2 }
         ];
         
         let gameState = {
             teams: [],
+            floors: DEFAULT_FLOORS,
             unlockedFloor: 0,
             winnerName: null
         };
@@ -262,6 +260,10 @@
         
         function renderBoard() {
             let teams = gameState.teams || [];
+            let floors = (gameState.floors && Array.isArray(gameState.floors) && gameState.floors.length > 0)
+                ? gameState.floors
+                : DEFAULT_FLOORS;
+            let maxTotalFloors = floors.length;
             let unlockedFloor = gameState.unlockedFloor || 0;
             
             let currentMax = teams.length ? Math.max(0, ...teams.map(t => t.floor)) : 0;
@@ -276,14 +278,14 @@
 
             if (unlockedFloor >= 0) roof.style.display = 'block';
 
-            for (let i = 0; i <= unlockedFloor && i <= MAX_TOTAL_FLOORS; i++) {
+            for (let i = 0; i <= unlockedFloor && i <= maxTotalFloors; i++) {
                 const floorDiv = document.createElement("div");
                 floorDiv.className = "floor";
-                floorDiv.style.width = `${100 - (i * 3)}%`;
+                floorDiv.style.width = `${Math.max(55, 100 - (i * 3))}%`;
                 
                 const title = document.createElement("div");
                 title.className = "floor-title";
-                let currentFloorName = floorNames[i] || `Floor ${i}`;
+                let currentFloorName = (i === 0) ? "The Crypt" : (floors[i - 1] ? floors[i - 1].name : `Floor ${i}`);
                 title.innerHTML = `<span>${currentFloorName}</span> <span>🕯️</span>`;
                 floorDiv.appendChild(title);
 
@@ -327,7 +329,6 @@
 
         // Fallback polling: refreshes the viewer every 1.5 seconds if WebSockets are blocked
         setInterval(fetchState, 1500);
-    </script>
     </script>
 </body>
 </html>
